@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional
+import warnings
 
 """
 License MIT
@@ -54,10 +55,101 @@ class WhereFilter(ABC):
         pass
 
 
-class NocoDBProject:
-    def __init__(self, org_name: str, project_name: str):
-        self.project_name = project_name
-        self.org_name = org_name
+class NocoDBBase:
+    """Represents a NocoDB base (formerly called project in v1 API).
+
+    In the v3 API hierarchy: workspace -> base -> table
+    The base_id is used in API paths like /api/v3/data/{baseId}/{tableId}/records
+
+    Args:
+        base_id: The base ID (e.g., "pgfqcp0ocloo1j3")
+        workspace_id: Optional workspace ID, needed for some meta operations
+
+    Example:
+        >>> base = NocoDBBase("pgfqcp0ocloo1j3")
+        >>> base = NocoDBBase("pgfqcp0ocloo1j3", workspace_id="ws_abc123")
+    """
+
+    def __init__(self, base_id: str, workspace_id: str = None):
+        self._base_id = base_id
+        self._workspace_id = workspace_id
+
+    @property
+    def base_id(self) -> str:
+        """The base ID used in v3 API paths."""
+        return self._base_id
+
+    @property
+    def workspace_id(self) -> str:
+        """The workspace ID (optional, needed for some meta operations)."""
+        return self._workspace_id
+
+    # Deprecated property aliases for backwards compatibility
+    @property
+    def org_name(self) -> str:
+        """Deprecated: Use workspace_id instead."""
+        warnings.warn(
+            "org_name is deprecated. Use workspace_id instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self._workspace_id or ""
+
+    @property
+    def project_name(self) -> str:
+        """Deprecated: Use base_id instead."""
+        warnings.warn(
+            "project_name is deprecated. Use base_id instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self._base_id
+
+    def __repr__(self) -> str:
+        if self._workspace_id:
+            return f"NocoDBBase(base_id={self._base_id!r}, workspace_id={self._workspace_id!r})"
+        return f"NocoDBBase(base_id={self._base_id!r})"
+
+
+class NocoDBProject(NocoDBBase):
+    """Deprecated: Use NocoDBBase instead.
+
+    This class is maintained for backwards compatibility with code written
+    for the v1 API. New code should use NocoDBBase directly.
+
+    .. deprecated:: 0.2.0
+        Use :class:`NocoDBBase` instead.
+    """
+
+    def __init__(self, org_name: str = None, project_name: str = None, *, base_id: str = None, workspace_id: str = None):
+        """Initialize a NocoDBProject (deprecated, use NocoDBBase).
+
+        For backwards compatibility, accepts either:
+        - Legacy style: NocoDBProject(org_name, project_name)
+        - New style: NocoDBProject(base_id=..., workspace_id=...)
+
+        Args:
+            org_name: Deprecated. Maps to workspace_id.
+            project_name: Deprecated. Maps to base_id.
+            base_id: The base ID (preferred).
+            workspace_id: The workspace ID (preferred).
+        """
+        warnings.warn(
+            "NocoDBProject is deprecated. Use NocoDBBase instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
+        # Handle legacy positional arguments
+        if base_id is None and project_name is not None:
+            base_id = project_name
+        if workspace_id is None and org_name is not None:
+            workspace_id = org_name
+
+        if base_id is None:
+            raise ValueError("base_id (or project_name for legacy code) is required")
+
+        super().__init__(base_id=base_id, workspace_id=workspace_id)
 
 
 class NocoDBClient:

@@ -2,7 +2,7 @@ import warnings
 from enum import Enum
 from typing import Optional
 from urllib.parse import urljoin
-from .nocodb import NocoDBProject
+from .nocodb import NocoDBBase, NocoDBProject
 
 
 class NocoDBAPIUris(Enum):
