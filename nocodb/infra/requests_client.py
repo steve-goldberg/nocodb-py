@@ -1,7 +1,8 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any, Union
 from ..nocodb import (
     NocoDBClient,
     NocoDBProject,
+    NocoDBBase,
     AuthToken,
     WhereFilter,
 )
@@ -210,3 +211,172 @@ class NocoDBRequestsClient(NocoDBClient):
             "POST",
             url=self.__api_info.get_column_uri(columnId, "primary"),
         ).json()
+
+    # =========================================================================
+    # v3 Data API Methods
+    # =========================================================================
+
+    def records_list_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List records using v3 API.
+
+        GET /api/v3/data/{baseId}/{tableId}/records
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            params: Optional query parameters:
+                - fields: Comma-separated field names to include
+                - sort: Sort field(s), prefix with - for descending
+                - where: Filter condition
+                - page: Page number (1-indexed)
+                - pageSize: Number of records per page
+                - viewId: Optional view ID to filter by
+
+        Returns:
+            Dict with 'records' array and optional 'next' pagination URL
+            Example: {"records": [{"id": 1, "fields": {...}}], "next": "url"}
+        """
+        url = self.__api_info.get_records_uri(base_id, table_id)
+        return self._request("GET", url, params=params).json()
+
+    def record_get_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        record_id: Union[int, str],
+    ) -> Dict[str, Any]:
+        """Get a single record using v3 API.
+
+        GET /api/v3/data/{baseId}/{tableId}/records/{recordId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            record_id: The record ID
+
+        Returns:
+            Dict with 'id' and 'fields'
+            Example: {"id": 1, "fields": {"Name": "John", "Age": 30}}
+        """
+        url = self.__api_info.get_record_uri(base_id, table_id, str(record_id))
+        return self._request("GET", url).json()
+
+    def records_create_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        records: Union[Dict[str, Any], List[Dict[str, Any]]],
+    ) -> List[Dict[str, Any]]:
+        """Create one or more records using v3 API.
+
+        POST /api/v3/data/{baseId}/{tableId}/records
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            records: Single record dict or list of record dicts
+                Each record should have a 'fields' key with field values
+                Example: {"fields": {"Name": "John"}} or
+                         [{"fields": {"Name": "John"}}, {"fields": {"Name": "Jane"}}]
+
+        Returns:
+            List of created records with 'id' and 'fields'
+            Example: [{"id": 1, "fields": {"Name": "John"}}]
+        """
+        url = self.__api_info.get_records_uri(base_id, table_id)
+
+        # Normalize to list format for API
+        if isinstance(records, dict):
+            body = [records]
+        else:
+            body = records
+
+        return self._request("POST", url, json=body).json()
+
+    def records_update_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        records: Union[Dict[str, Any], List[Dict[str, Any]]],
+    ) -> List[Dict[str, Any]]:
+        """Update one or more records using v3 API.
+
+        PATCH /api/v3/data/{baseId}/{tableId}/records
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            records: Single record dict or list of record dicts
+                Each record must have 'id' and 'fields' keys
+                Example: {"id": 1, "fields": {"Name": "Updated"}} or
+                         [{"id": 1, "fields": {...}}, {"id": 2, "fields": {...}}]
+
+        Returns:
+            List of updated records with 'id' and 'fields'
+            Example: [{"id": 1, "fields": {"Name": "Updated"}}]
+        """
+        url = self.__api_info.get_records_uri(base_id, table_id)
+
+        # Normalize to list format for API
+        if isinstance(records, dict):
+            body = [records]
+        else:
+            body = records
+
+        return self._request("PATCH", url, json=body).json()
+
+    def records_delete_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        record_ids: Union[int, str, List[Union[int, str]]],
+    ) -> List[Dict[str, Any]]:
+        """Delete one or more records using v3 API.
+
+        DELETE /api/v3/data/{baseId}/{tableId}/records
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            record_ids: Single record ID or list of record IDs to delete
+
+        Returns:
+            List of deleted record IDs
+            Example: [{"id": 1}, {"id": 2}]
+        """
+        url = self.__api_info.get_records_uri(base_id, table_id)
+
+        # Normalize to list format for API
+        if isinstance(record_ids, (int, str)):
+            body = [{"id": record_ids}]
+        else:
+            body = [{"id": rid} for rid in record_ids]
+
+        return self._request("DELETE", url, json=body).json()
+
+    def records_count_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, int]:
+        """Get record count using v3 API.
+
+        GET /api/v3/data/{baseId}/{tableId}/count
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            params: Optional query parameters (e.g., where filter)
+
+        Returns:
+            Dict with 'count' key
+            Example: {"count": 42}
+        """
+        url = self.__api_info.get_records_count_uri(base_id, table_id)
+        return self._request("GET", url, params=params).json()

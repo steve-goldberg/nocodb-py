@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List, Dict, Any, Union
 import warnings
 
 """
@@ -264,4 +264,122 @@ class NocoDBClient:
     def table_column_set_primary(
         self, columnId: str,
     ) -> dict:
+        pass
+
+    # =========================================================================
+    # v3 Data API Methods
+    # =========================================================================
+
+    @abstractmethod
+    def records_list_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List records using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            params: Optional query parameters (fields, sort, where, page, pageSize, viewId)
+
+        Returns:
+            Dict with 'records' array and optional 'next' pagination URL
+        """
+        pass
+
+    @abstractmethod
+    def record_get_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        record_id: Union[int, str],
+    ) -> Dict[str, Any]:
+        """Get a single record using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            record_id: The record ID
+
+        Returns:
+            Dict with 'id' and 'fields'
+        """
+        pass
+
+    @abstractmethod
+    def records_create_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        records: Union[Dict[str, Any], List[Dict[str, Any]]],
+    ) -> List[Dict[str, Any]]:
+        """Create one or more records using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            records: Single record dict or list of record dicts with 'fields' key
+
+        Returns:
+            List of created records with 'id' and 'fields'
+        """
+        pass
+
+    @abstractmethod
+    def records_update_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        records: Union[Dict[str, Any], List[Dict[str, Any]]],
+    ) -> List[Dict[str, Any]]:
+        """Update one or more records using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            records: Single record dict or list with 'id' and 'fields' keys
+
+        Returns:
+            List of updated records with 'id' and 'fields'
+        """
+        pass
+
+    @abstractmethod
+    def records_delete_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        record_ids: Union[int, str, List[Union[int, str]]],
+    ) -> List[Dict[str, Any]]:
+        """Delete one or more records using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            record_ids: Single record ID or list of record IDs
+
+        Returns:
+            List of deleted record IDs
+        """
+        pass
+
+    @abstractmethod
+    def records_count_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, int]:
+        """Get record count using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            params: Optional query parameters (e.g., where filter)
+
+        Returns:
+            Dict with 'count' key
+        """
         pass
