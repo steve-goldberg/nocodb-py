@@ -1,9 +1,34 @@
 # NocoDB Python Client
 
-NocoDB is a great Airtable alternative. This client allows python developers
-to use NocoDB API in a simple way.
+Python client for NocoDB API - **Self-hosted community edition**.
 
-- [Contributors guidelines](contributors.md)
+NocoDB is an open-source Airtable alternative. This client provides a simple Python interface for the NocoDB REST API.
+
+## Features
+
+- Full v3 Data API support (records, links, attachments)
+- v3 Meta API for tables and fields
+- v2 Meta API for bases list, views, filters, sorts, webhooks
+- Query filters with logical operators
+- Batch operations support
+- MIT licensed
+
+## API Version Summary
+
+This client uses a hybrid v2/v3 approach based on self-hosted NocoDB availability:
+
+| Feature | API | Notes |
+|---------|-----|-------|
+| Records CRUD | v3 | Full support |
+| Linked Records | v3 | Link/unlink operations |
+| Attachments | v3 | File uploads |
+| List Bases | v2 | v3 requires Enterprise |
+| Get/Update/Delete Base | v3 | Works in community |
+| Tables CRUD | v3 | Full support |
+| Fields CRUD | v3 | Full support |
+| Views CRUD | v2 | v3 requires Enterprise |
+| View Filters/Sorts | v2 | v3 requires Enterprise |
+| Webhooks | v2 | Not yet in v3 |
 
 ## Installation
 
@@ -11,242 +36,304 @@ to use NocoDB API in a simple way.
 pip install nocodb
 ```
 
-## Usage
+## Quick Start
 
-### Client configuration
+### Client Setup
+
 ```python
-from nocodb.nocodb import NocoDBProject, APIToken, JWTAuthToken
-from nocodb.filters import LikeFilter, EqFilter, And
+from nocodb import NocoDBBase, APIToken
 from nocodb.infra.requests_client import NocoDBRequestsClient
 
-
-# Usage with API Token
+# Create client with API token
 client = NocoDBRequestsClient(
-        # Your API Token retrieved from NocoDB conf
-        APIToken("YOUR-API-TOKEN"),
-        # Your nocodb root path
-        "http://localhost:8080"
+    APIToken("YOUR-API-TOKEN"),
+    "http://localhost:8080"  # Your NocoDB instance URL
 )
 
-# Usage with JWT Token
-client = NocoDBRequestsClient(
-        # Your API Token retrieved from NocoDB conf
-        JWTAuthToken("your.jwt.token"),
-        # Your nocodb root path
-        "http://localhost:8080"
+# Define base and table IDs (from NocoDB URL or API)
+base_id = "pgfqcp0ocloo1j3"    # e.g., from URL: /dashboard/#/nc/pgfqcp0ocloo1j3
+table_id = "mq31p5ngbwj5o7u"   # e.g., from table settings
+```
+
+### v3 Data API - Records
+
+```python
+# List records
+result = client.records_list_v3(base_id, table_id)
+# Response: {"records": [{"id": 1, "fields": {"Name": "...", "Status": "..."}}], "next": "..."}
+
+# Access records from response
+for record in result["records"]:
+    print(f"ID: {record['id']}, Name: {record['fields']['Name']}")
+
+# Get single record
+record = client.record_get_v3(base_id, table_id, 1)
+# Response: {"id": 1, "fields": {"Name": "John", "Status": "Active"}}
+
+# Create records (batch)
+new_records = client.records_create_v3(base_id, table_id, [
+    {"fields": {"Name": "Record 1", "Status": "Active"}},
+    {"fields": {"Name": "Record 2", "Status": "Draft"}}
+])
+# Response: [{"id": 1, "fields": {...}}, {"id": 2, "fields": {...}}]
+
+# Update records (batch)
+updated = client.records_update_v3(base_id, table_id, [
+    {"id": 1, "fields": {"Status": "Complete"}},
+    {"id": 2, "fields": {"Status": "Active"}}
+])
+
+# Delete records (batch)
+deleted = client.records_delete_v3(base_id, table_id, [1, 2])
+# Response: [{"id": 1}, {"id": 2}]
+
+# Count records
+count_result = client.records_count_v3(base_id, table_id)
+# Response: {"count": 42}
+```
+
+### Query Parameters
+
+The v3 API accepts query parameters for filtering, sorting, and pagination:
+
+```python
+# Pagination
+result = client.records_list_v3(base_id, table_id, params={
+    "page": 1,
+    "pageSize": 25
+})
+
+# Select specific fields
+result = client.records_list_v3(base_id, table_id, params={
+    "fields": "Name,Status,CreatedAt"
+})
+
+# Sort records (prefix with - for descending)
+result = client.records_list_v3(base_id, table_id, params={
+    "sort": "-CreatedAt,Name"
+})
+
+# Filter with view
+result = client.records_list_v3(base_id, table_id, params={
+    "viewId": "vw_abc123"
+})
+```
+
+### Filtering Records
+
+Use the filter classes to build query conditions:
+
+```python
+from nocodb.filters import EqFilter, LikeFilter, And, Or, IsFilter, InFilter, BetweenFilter
+
+# Simple filter - pass to params["where"]
+result = client.records_list_v3(base_id, table_id, params={
+    "where": EqFilter("Status", "Active").get_where()
+})
+# Generates: (Status,eq,Active)
+
+# Combined filters with And/Or
+filter_condition = And(
+    EqFilter("Status", "Active"),
+    LikeFilter("Name", "%test%")
 )
-```
+result = client.records_list_v3(base_id, table_id, params={
+    "where": filter_condition.get_where()
+})
+# Generates: (Status,eq,Active)~and(Name,like,%test%)
 
-### Project creation
-```python
-# Example with default database
-project_body = {"title": "My new project"}
-
-# Example with Postgresql
-project_body = {
-    "title": "MyProject",
-    "bases": [
-        {
-            "type": "pg",
-            "config": {
-                "client": "pg",
-                "connection": {
-                    "host": "localhost",
-                    "port": "5432",
-                    "user": "postgres",
-                    "password": "postgres",
-                    "database": "postgres"
-                },
-                "searchPath": [
-                    "public"
-                ]
-            },
-            "inflection_column": "camelize",
-            "inflection_table": "camelize"
-        }
-    ],
-    "external": True
-}
-
-project = client.project_create(body=project_body)
-```
-
-### Project selection
-```python
-# Be very carefull with org, project_name and table names
-# weird errors from nocodb can arrive if they are wrong
-# example: id is not defined...
-# probably they will fix that in a future release.
-project = NocoDBProject(
-        "noco", # org name. noco by default
-        "myproject" # project name. Case sensitive!!
+# Or conditions
+filter_condition = Or(
+    EqFilter("Status", "Active"),
+    EqFilter("Status", "Pending")
 )
+# Generates: (Status,eq,Active)~or(Status,eq,Pending)
 
+# Null/empty checks with IsFilter
+result = client.records_list_v3(base_id, table_id, params={
+    "where": IsFilter("Status", "notnull").get_where()
+})
+# Valid values: null, notnull, true, false, empty, notempty
+
+# Match list of values with InFilter
+result = client.records_list_v3(base_id, table_id, params={
+    "where": InFilter("Tags", ["urgent", "important"]).get_where()
+})
+# Generates: (Tags,in,urgent,important)
+
+# Range matching with BetweenFilter
+result = client.records_list_v3(base_id, table_id, params={
+    "where": BetweenFilter("Age", 18, 65).get_where()
+})
+# Generates: (Age,btw,18,65)
 ```
 
-### Table rows operations
-```python
-table_name = "tablename"
-
-# Retrieve a page of rows from a table
-table_rows = client.table_row_list(project, table_name)
-
-# Retrieve the first 1000 rows
-table_rows = client.table_row_list(project, table_name, params={'limit': 1000})
-
-# Skip 100 rows
-table_rows = client.table_row_list(project, table_name, params={'offset': 100})
-```
-
-⚠️ Seems that we can't retrieve more than 1000 rows at the same time but we can paginate
- to retrieve all the rows from a table
-
-Pagination example
-
-```python
-
-first_100_rows = client.table_row_list(project, table_name, params={'limit': 100})
-next_100_rows = client.table_row_list(project, table_name, params={'limit': 100, 'offset': 100})
-next_100_rows = client.table_row_list(project, table_name, params={'limit': 100, 'offset': 200})
-```
-
-More row operations
+### v3 Linked Records
 
 ```python
-# Filter the query
-table_rows = client.table_row_list(project, table_name, LikeFilter("name", "%sam%"))
-table_rows = client.table_row_list(project, table_name, And(LikeFilter("name", "%sam%"), EqFilter("age", 26)))
-table_rows = client.table_row_list(project, table_name, filter_obj=EqFilter("Id", 100))
+link_field_id = "lk_abc123"
+record_id = 1
 
-# Filter and count rows
-count = client.table_count(project, table_name, filter_obj=EqFilter("Id", 100))
+# List linked records
+linked = client.linked_records_list_v3(base_id, table_id, link_field_id, record_id)
+# Response: {"list": [{"id": 22, "fields": {...}}], "next": "url"}
 
-# Find one row
-table_row = client.table_find_one(project, table_name, filter_obj=EqFilter("Id", 100), params={"sort": "-created_at"})
+# Link records
+client.linked_records_link_v3(base_id, table_id, link_field_id, record_id,
+    link_records=[{"id": 22}, {"id": 43}])
 
-# Retrieve a single row
-row_id = 10
-row = client.table_row_detail(project, table_name, row_id)
-
-# Create a new row
-row_info = {
-    "name": "my thoughts",
-    "content": "i'm going to buy samuel a beer 🍻 because I 💚 this module",
-    "mood": ":)"
-}
-client.table_row_create(project, table_name, row_info)
-
-# Update a row
-row_id = 2
-row_info = {
-    "content": "i'm going to buy samuel a new car 🚙 because I 💚 this module",
-}
-client.table_row_update(project, table_name, row_id, row_info)
-
-# Delete a row (only if you've already bought me a beer)
-client.table_row_delete(project, table_name, row_id)
+# Unlink records
+client.linked_records_unlink_v3(base_id, table_id, link_field_id, record_id,
+    unlink_records=[{"id": 22}])
 ```
 
-### Available filters
-
-- EqFilter
-- EqualFilter (Alias of EqFilter)
-- NotEqualFilter
-- GreaterThanFilter
-- GreaterOrEqualFilter
-- LessThanFilter
-- LessOrEqualFilter
-- LikeFilter
-- Or
-- Not
-- And
-
-#### Combining filters using Logical operations
+### v2 Meta API - Bases & Views
 
 ```python
-from nocodb import filters
+# List all bases (v2 API - required for self-hosted)
+bases = client.bases_list_v3()
+# Response: {"list": [{"id": "base_abc", "title": "My Base"}]}
 
-# Basic filters...
-nick_filter = filters.EqFilter("nickname", "elchicodepython")
-country_filter = filters.EqFilter("country", "es")
-girlfriend_code = filters.EqFilter("gfcode", "404")
-current_mood_code = filters.EqFilter("moodcode", "418")
+# List views for a table (v2 API)
+views = client.views_list(table_id)
 
-# Combining filters using logical filters
-or_filter = filters.Or(nick_filter, country_filter)
-and_filter = filters.And(girlfriend_code, current_mood_code)
+# Get view filters (v2 API)
+filters = client.view_filters_list(view_id)
 
-# Negating filters with a Not filter
-not_me = filters.Not(filters.EqFilter("nickname", "elchicodepython"))
-
-# You can also combine combinations
-or_combined_filter = filters.Or(or_filter, and_filter)
-and_combined_filter = filters.And(or_filter, and_filter)
-
+# Get view sorts (v2 API)
+sorts = client.view_sorts_list(view_id)
 ```
 
-### Using custom filters
+### v3 Meta API - Tables & Fields
 
-Nocodb is evolving and new operators are coming with each release.
+```python
+# List tables in a base
+tables = client.tables_list_v3(base_id)
+# Response: {"tables": [{"id": "tbl_abc", "title": "My Table"}]}
 
-Most of the basic operations are inside this package but you could need some new
-feature that could not be added yet.
-For those filters you can build your own.
+# Get table schema
+table_meta = client.table_get_v3(base_id, table_id)
 
-Example for basic filters:
+# List fields
+fields = client.fields_list_v3(base_id, table_id)
+```
+
+## Available Filters
+
+### Comparison Filters
+
+| Filter | Operator | Description |
+|--------|----------|-------------|
+| `EqFilter` / `EqualFilter` | `eq` | Equal |
+| `NotEqualFilter` | `neq` | Not equal |
+| `GreaterThanFilter` | `gt` | Greater than |
+| `GreaterOrEqualFilter` | `gte` | Greater than or equal |
+| `LessThanFilter` | `lt` | Less than |
+| `LessOrEqualFilter` | `lte` | Less than or equal |
+| `LikeFilter` | `like` | Contains (use `%` wildcard) |
+| `NotLikeFilter` | `nlike` | Does not contain |
+
+### Special Filters
+
+| Filter | Operator | Description |
+|--------|----------|-------------|
+| `IsFilter` | `is` | Null/empty checks: `null`, `notnull`, `true`, `false`, `empty`, `notempty` |
+| `InFilter` | `in` | Match list of values |
+| `BetweenFilter` | `btw` | Range matching |
+
+### Logical Operators
+
+| Operator | v3 Syntax | Description |
+|----------|-----------|-------------|
+| `And` | `~and` | Combine filters with AND |
+| `Or` | `~or` | Combine filters with OR |
+| `Not` | `~not` | Negate a filter |
+
+### Custom Filters
 
 ```python
 from nocodb.filters.factory import basic_filter_class_factory
-
-BasicFilter = basic_filter_class_factory('=')
-table_rows = client.table_row_list(project, table_name, BasicFilter('age', '16'))
-
-```
-
-You can find the updated list of all the available nocodb operators [here](https://docs.nocodb.com/developer-resources/rest-apis/#comparison-operators).
-
-In some cases you might want to write your own filter string as described in the previous link.
-For that cases you can use the less-semmantic RawFilter.
-
-```python
 from nocodb.filters.raw_filter import RawFilter
 
-table_rows = client.table_row_list(project, table_name, RawFilter('(birthday,eq,exactDate,2023-06-01)'))
+# Create custom filter class
+CustomFilter = basic_filter_class_factory('custom_op')
+my_filter = CustomFilter("field", "value")
+# Generates: (field,custom_op,value)
+
+# Or use raw filter string directly
+result = client.records_list_v3(base_id, table_id, params={
+    "where": RawFilter('(field,op,value)').get_where()
+})
 ```
 
-In some cases we might want to have a file with some custom raw filters already defined by us.
-We can easily create custom raw filter classes using `raw_template_filter_class_factory`.
+## v3 Response Format
+
+The v3 API returns records in a nested format with `id` and `fields`:
 
 ```python
-from nocodb.filters.factory import raw_template_filter_class_factory
+# v3 record structure
+{
+    "id": 1,
+    "fields": {
+        "Name": "John Doe",
+        "Email": "john@example.com",
+        "Status": "Active",
+        "CreatedAt": "2024-01-15T10:30:00.000Z"
+    }
+}
 
-BirthdayDateFilter = raw_template_filter_class_factory('(birthday,eq,exactDate,{})')
-ExactDateEqFilter = raw_template_filter_class_factory('({},eq,exactDate,{})')
-ExactDateOpFilter = raw_template_filter_class_factory('({},{op},exactDate,{})')
-
-table_rows = client.table_row_list(project, table_name, BirthdayDateFilter('2023-06-01'))
-table_rows = client.table_row_list(project, table_name, ExactDateEqFilter('column', '2023-06-01'))
-table_rows = client.table_row_list(project, table_name, ExactDateOpFilter('column', '2023-06-01', op='eq'))
+# v3 list response
+{
+    "records": [
+        {"id": 1, "fields": {"Name": "John", ...}},
+        {"id": 2, "fields": {"Name": "Jane", ...}}
+    ],
+    "next": "http://localhost:8080/api/v3/data/.../records?page=2"  # Optional pagination URL
+}
 ```
 
+## Breaking Changes from v1
 
-Credits to @MitPitt for asking this feature.
+| Aspect | v1 API | v3 API |
+|--------|--------|--------|
+| Base identifier | `NocoDBProject(org, project_name)` | `NocoDBBase(base_id)` or just `base_id` string |
+| List records | `table_row_list(project, table)` | `records_list_v3(base_id, table_id)` |
+| Get record | `table_row_detail(project, table, row_id)` | `record_get_v3(base_id, table_id, record_id)` |
+| Create record | `table_row_create(project, table, body)` | `records_create_v3(base_id, table_id, records)` |
+| Update record | `table_row_update(project, table, row_id, body)` | `records_update_v3(base_id, table_id, records)` |
+| Delete record | `table_row_delete(project, table, row_id)` | `records_delete_v3(base_id, table_id, record_ids)` |
+| Response format | `{"Id": 1, "Name": "..."}` | `{"id": 1, "fields": {"Name": "..."}}` |
+| Filter operators | `ge`, `le` | `gte`, `lte` |
 
-## Author notes
+### Migration Example
 
-I created this package to bootstrap some personal projects and I hope it
-will help other developers from the python community. It's not completed but
-it has what I needed: A full CRUD with some filters.
+```python
+# v1 API (deprecated)
+from nocodb import NocoDBProject
+project = NocoDBProject("noco", "my_project")
+rows = client.table_row_list(project, "users")
 
-Feel free to add new capabilities by creating a new MR.
+# v3 API (recommended)
+base_id = "pgfqcp0ocloo1j3"
+table_id = "mq31p5ngbwj5o7u"
+result = client.records_list_v3(base_id, table_id)
+records = result["records"]
+```
 
-## Contributors
+## Not Supported (Enterprise Only)
 
-![Contributors image](https://contrib.rocks/image?repo=elchicodepython/python-nocodb)
+These features require NocoDB Enterprise and are not available in self-hosted community edition:
 
+- Workspaces (multi-tenant hierarchy)
+- Teams management
+- Workspace members
+- v3 Views API
+- v3 Bases list endpoint
 
-- Samuel López Saura @elchicodepython
-- Ilya Sapunov @davert0
-- Delena Malan @delenamalan
-- Jan Scheiper @jangxx
+## License
 
+MIT
+
+## Contributing
+
+See [contributors.md](contributors.md) for guidelines.

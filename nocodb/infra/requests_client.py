@@ -1,3 +1,4 @@
+import warnings
 from typing import Optional, List, Dict, Any, Union
 from ..nocodb import (
     NocoDBClient,
@@ -138,6 +139,16 @@ class NocoDBRequestsClient(NocoDBClient):
         project: NocoDBProject,
         params: Optional[dict] = None,
     ) -> dict:
+        """List tables in a project (DEPRECATED).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`tables_list_v3` with base_id instead.
+        """
+        warnings.warn(
+            "table_list() is deprecated. Use tables_list_v3(base_id) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._request(
             "GET",
             url=self.__api_info.get_project_tables_uri(project),
@@ -379,4 +390,101 @@ class NocoDBRequestsClient(NocoDBClient):
             Example: {"count": 42}
         """
         url = self.__api_info.get_records_count_uri(base_id, table_id)
+        return self._request("GET", url, params=params).json()
+
+    def linked_records_list_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        link_field_id: str,
+        record_id: Union[int, str],
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List linked records for a specific record using v3 API.
+
+        GET /api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            link_field_id: The link field ID
+            record_id: The record ID
+            params: Optional query parameters:
+                - fields: Comma-separated field names to include
+                - sort: Sort field(s), prefix with - for descending
+                - where: Filter condition
+                - page: Page number (1-indexed)
+                - pageSize: Number of records per page
+
+        Returns:
+            Dict with 'list' array of linked records and optional 'next' pagination URL
+            Example: {"list": [{"id": 1, "fields": {...}}], "next": "url"}
+        """
+        url = self.__api_info.get_linked_records_uri(base_id, table_id, link_field_id, str(record_id))
+        return self._request("GET", url, params=params).json()
+
+    # =========================================================================
+    # v3 Meta API Methods
+    # =========================================================================
+
+    def workspaces_list_v3(
+        self,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List workspaces using v3 API (Enterprise feature).
+
+        GET /api/v3/meta/workspaces
+
+        Args:
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'workspaces' array
+            Example: {"workspaces": [{"id": "ws_abc", "title": "My Workspace"}]}
+        """
+        url = self.__api_info.get_workspaces_uri()
+        return self._request("GET", url, params=params).json()
+
+    def bases_list_v3(
+        self,
+        workspace_id: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List bases using v3 API.
+
+        For self-hosted NocoDB (no workspaces):
+            GET /api/v3/meta/bases
+
+        For Enterprise/Cloud (with workspaces):
+            GET /api/v3/meta/workspaces/{workspaceId}/bases
+
+        Args:
+            workspace_id: The workspace ID (optional, not needed for self-hosted)
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'bases' array
+            Example: {"bases": [{"id": "base_abc", "title": "My Base"}]}
+        """
+        url = self.__api_info.get_bases_uri(workspace_id)
+        return self._request("GET", url, params=params).json()
+
+    def tables_list_v3(
+        self,
+        base_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List tables in a base using v3 API.
+
+        GET /api/v3/meta/bases/{baseId}/tables
+
+        Args:
+            base_id: The base (project) ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'tables' array
+            Example: {"tables": [{"id": "tbl_abc", "title": "My Table"}]}
+        """
+        url = self.__api_info.get_tables_uri(base_id)
         return self._request("GET", url, params=params).json()

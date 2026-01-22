@@ -383,3 +383,85 @@ class NocoDBClient:
             Dict with 'count' key
         """
         pass
+
+    @abstractmethod
+    def linked_records_list_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        link_field_id: str,
+        record_id: Union[int, str],
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List linked records for a specific record using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            link_field_id: The link field ID
+            record_id: The record ID
+            params: Optional query parameters (fields, sort, where, page, pageSize)
+
+        Returns:
+            Dict with 'list' array of linked records and optional 'next' pagination URL
+        """
+        pass
+
+    # =========================================================================
+    # v3 Meta API Methods
+    # =========================================================================
+
+    @abstractmethod
+    def workspaces_list_v3(
+        self,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List workspaces using v3 API (Enterprise feature).
+
+        Args:
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'workspaces' array
+        """
+        pass
+
+    @abstractmethod
+    def bases_list_v3(
+        self,
+        workspace_id: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List bases using v3 API.
+
+        For self-hosted NocoDB (no workspaces):
+            GET /api/v3/meta/bases
+
+        For Enterprise/Cloud (with workspaces):
+            GET /api/v3/meta/workspaces/{workspaceId}/bases
+
+        Args:
+            workspace_id: The workspace ID (optional, not needed for self-hosted)
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'bases' array
+        """
+        pass
+
+    @abstractmethod
+    def tables_list_v3(
+        self,
+        base_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List tables in a base using v3 API.
+
+        Args:
+            base_id: The base (project) ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'tables' array
+        """
+        pass

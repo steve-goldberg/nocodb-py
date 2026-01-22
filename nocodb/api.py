@@ -126,18 +126,24 @@ class NocoDBAPI:
         """
         return urljoin(self.__base_meta_uri, "workspaces")
 
-    def get_bases_uri(self, workspace_id: str) -> str:
-        """Get the URI for listing bases in a workspace.
+    def get_bases_uri(self, workspace_id: str = None) -> str:
+        """Get the URI for listing bases.
 
-        v3 endpoint: GET /api/v3/meta/workspaces/{workspaceId}/bases
+        v3 endpoints:
+        - With workspace: GET /api/v3/meta/workspaces/{workspaceId}/bases
+        - Without workspace (self-hosted): GET /api/v3/meta/bases
 
         Args:
-            workspace_id: The workspace ID
+            workspace_id: The workspace ID (optional for self-hosted without Enterprise)
 
         Returns:
             The URI for bases list
         """
-        return urljoin(self.__base_meta_uri, "/".join(("workspaces", workspace_id, "bases")))
+        if workspace_id:
+            return urljoin(self.__base_meta_uri, "/".join(("workspaces", workspace_id, "bases")))
+        else:
+            # Self-hosted NocoDB without workspaces
+            return urljoin(self.__base_meta_uri, "bases")
 
     def get_base_uri(self, base_id: str) -> str:
         """Get the URI for a specific base.
