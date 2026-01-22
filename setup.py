@@ -7,11 +7,11 @@ setup(
    author='Samuel López Saura',
    author_email='samuellopezsaura@gmail.com',
    packages=find_packages(),
-   license='MIT',
+   license='AGPL-3.0',
    url='https://github.com/ElChicoDePython/python-nocodb',
    classifiers=[
        "Programming Language :: Python :: 3",
-       "License :: OSI Approved :: MIT License",
+       "License :: OSI Approved :: GNU Affero General Public License v3",
        "Operating System :: OS Independent",
    ],
    description='A Python client for NocoDB v3 API',

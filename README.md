@@ -332,7 +332,11 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 
 ## License
 
-MIT
+AGPL-3.0
+
+This project is licensed under the GNU Affero General Public License v3.0.
+
+**Attribution**: Based on [nocodb-python-client](https://github.com/ElChicoDePython/python-nocodb) by Samuel López Saura, originally released under MIT License (2022).
 
 ## Contributing
 
