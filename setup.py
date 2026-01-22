@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
    name='nocodb',
-   version='2.0.1',
+   version='3.0.0',
    author='Samuel López Saura',
    author_email='samuellopezsaura@gmail.com',
    packages=find_packages(),
@@ -14,7 +14,7 @@ setup(
        "License :: OSI Approved :: MIT License",
        "Operating System :: OS Independent",
    ],
-   description='A package to use NocoDB API in a simple way',
+   description='A Python client for NocoDB v3 API',
    long_description=open('README.md').read(),
    long_description_content_type="text/markdown",
    install_requires=[
