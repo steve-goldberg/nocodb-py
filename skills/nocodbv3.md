@@ -71,7 +71,7 @@ nocodb fields list -t TABLE_ID              # List fields
 nocodb fields get FIELD_ID                  # Get field details
 nocodb fields create -t TABLE_ID --title "Name" --type TYPE
 nocodb fields create -t TABLE_ID --title "Status" --type SingleSelect \
-  -o '{"options":[{"title":"Active"},{"title":"Inactive"}]}'
+  -o '{"options":[{"title":"Active","color":"#00FF00"},{"title":"Inactive","color":"#FF0000"}]}'
 nocodb fields update FIELD_ID --title "New" # Rename field
 nocodb fields delete FIELD_ID               # Delete field
 ```
@@ -130,8 +130,8 @@ nocodb views sorts delete SORT_ID
 | `Time` | Time only | - |
 | `Duration` | Time span | - |
 | `Checkbox` | Boolean | - |
-| `SingleSelect` | Dropdown | `{"options":[{"title":"A"},{"title":"B"}]}` |
-| `MultiSelect` | Multi-dropdown | `{"options":[{"title":"A"},{"title":"B"}]}` |
+| `SingleSelect` | Dropdown | `{"options":[{"title":"A","color":"#00FF00"},{"title":"B","color":"#FF0000"}]}` |
+| `MultiSelect` | Multi-dropdown | `{"options":[{"title":"A","color":"#00FF00"},{"title":"B","color":"#FF0000"}]}` |
 | `Rating` | Star rating | `{"max":5}` |
 | `Attachment` | File upload | - |
 | `Links` | Relationship | See below |
@@ -231,3 +231,19 @@ nocodb records list BASE TABLE --json | jq '.records[].id'
 | Between | `btw` | `(Age,btw,18,65)` |
 | And | `~and` | `(A,eq,1)~and(B,eq,2)` |
 | Or | `~or` | `(A,eq,1)~or(A,eq,2)` |
+
+## Limitations (Self-Hosted)
+
+| Feature | CLI | Notes |
+|---------|-----|-------|
+| Bases | list only | Cannot create bases via API |
+| Tables | full CRUD | ✅ |
+| Fields | full CRUD | ✅ |
+| Records | full CRUD | ✅ |
+| Links | list, link, unlink | ✅ |
+| Views | list, update, delete | Cannot create or get single view |
+| View Filters | full CRUD | ✅ |
+| View Sorts | full CRUD | ✅ |
+| Webhooks | list, delete | Cannot create/get/update/test |
+
+Use NocoDB web UI to create views and webhooks, then manage via CLI.
