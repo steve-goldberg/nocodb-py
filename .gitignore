@@ -12,3 +12,5 @@ init.sh
 claude-progress.txt
 e2e-progress.txt
 tests/
+PLAN.md
+tests.json
