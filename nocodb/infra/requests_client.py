@@ -359,7 +359,9 @@ class NocoDBRequestsClient(NocoDBClient):
         else:
             body = records
 
-        return self._request("POST", url, json=body).json()
+        result = self._request("POST", url, json=body).json()
+        # v3 API returns {"records": [...]} wrapper
+        return result.get("records", result)
 
     def records_update_v3(
         self,
@@ -391,7 +393,9 @@ class NocoDBRequestsClient(NocoDBClient):
         else:
             body = records
 
-        return self._request("PATCH", url, json=body).json()
+        result = self._request("PATCH", url, json=body).json()
+        # v3 API returns {"records": [...]} wrapper
+        return result.get("records", result)
 
     def records_delete_v3(
         self,
@@ -420,7 +424,9 @@ class NocoDBRequestsClient(NocoDBClient):
         else:
             body = [{"id": rid} for rid in record_ids]
 
-        return self._request("DELETE", url, json=body).json()
+        result = self._request("DELETE", url, json=body).json()
+        # v3 API returns {"records": [...]} wrapper
+        return result.get("records", result)
 
     def records_count_v3(
         self,
@@ -843,6 +849,7 @@ class NocoDBRequestsClient(NocoDBClient):
         self,
         base_id: str,
         table_id: str,
+        params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Read a single table's metadata using v3 API.
 
@@ -851,12 +858,13 @@ class NocoDBRequestsClient(NocoDBClient):
         Args:
             base_id: The base (project) ID
             table_id: The table ID
+            params: Optional query parameters
 
         Returns:
             Table object with id, title, columns, etc.
         """
         url = self.__api_info.get_table_meta_uri_v3(base_id, table_id)
-        return self._request("GET", url).json()
+        return self._request("GET", url, params=params).json()
 
     def table_update_v3(
         self,
@@ -972,19 +980,21 @@ class NocoDBRequestsClient(NocoDBClient):
     ) -> Dict[str, Any]:
         """List all fields/columns in a table.
 
-        GET /api/v3/meta/bases/{baseId}/tables/{tableId}/fields
+        Note: v3 API does not have a separate fields list endpoint.
+        This method retrieves fields from the table schema via table_read_v3.
 
         Args:
             base_id: The base (project) ID
             table_id: The table ID
-            params: Optional query parameters
+            params: Optional query parameters passed to table_read_v3
 
         Returns:
             Dict with 'list' array of fields
-            Example: {"list": [{"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}]}
+            Example: {"list": [{"id": "fld_abc", "title": "Name", "type": "SingleLineText"}]}
         """
-        url = self.__api_info.get_fields_uri(base_id, table_id)
-        return self._request("GET", url, params=params).json()
+        # v3 API includes fields in table read response
+        table_info = self.table_read_v3(base_id, table_id, params=params)
+        return {"list": table_info.get("fields", [])}
 
     def field_create_v3(
         self,
@@ -999,11 +1009,12 @@ class NocoDBRequestsClient(NocoDBClient):
         Args:
             base_id: The base (project) ID
             table_id: The table ID
-            body: Field configuration (title, uidt, etc.)
-                Example: {"title": "Email", "uidt": "Email"}
+            body: Field configuration (title, type, options)
+                Example: {"title": "Email", "type": "Email"}
+                For Links: {"title": "Tasks", "type": "Links", "options": {"relation_type": "mm", "related_table_id": "tbl_xyz"}}
 
         Returns:
-            Created field object with id, title, uidt, etc.
+            Created field object with id, title, type, etc.
         """
         url = self.__api_info.get_fields_uri(base_id, table_id)
         return self._request("POST", url, json=body).json()
