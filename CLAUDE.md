@@ -69,15 +69,24 @@ nocodb-api-v3-client/
 │   │   ├── factory.py        # basic_filter_class_factory()
 │   │   ├── logical.py        # And, Or, Not operators
 │   │   ├── raw_filter.py     # RawFilter for custom strings
-│   │   └── *_test.py         # Colocated tests
+│   │   └── *_test.py         # Colocated unit tests (filters_test, factory_test, logical_test)
 │   └── infra/
 │       ├── __init__.py
 │       ├── requests_client.py      # HTTP client (v3 + legacy methods)
-│       └── requests_client_test.py
+│       └── requests_client_test.py # Unit tests (138 tests)
+├── tests/
+│   ├── integration_examples.py     # Integration examples (manual)
+│   └── test_integration_full.py    # Full integration tests (requires live NocoDB)
 ├── setup.py                  # Package config
-├── features.json             # Feature tracking (forge workflow)
+├── features.json             # Feature tracking (37 features)
+├── tests.json                # Test specifications (138 test cases)
+├── e2e-progress.txt          # E2E test discovery log
 ├── claude-progress.txt       # Development log
-└── README.md
+├── MIGRATION.md              # v1 to v3 migration guide
+├── PLAN.md                   # Implementation plan
+├── contributors.md           # Contributors list
+├── init.sh                   # Environment setup script
+└── README.md                 # User documentation
 ```
 
 ## Architecture

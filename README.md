@@ -270,7 +270,7 @@ table_meta = client.table_get_v3(base_id, table_id)
 # Fields CRUD
 fields = client.fields_list_v3(base_id, table_id)
 field = client.field_read_v3(base_id, field_id)
-client.field_create_v3(base_id, table_id, {"title": "New Field", "uidt": "SingleLineText"})
+client.field_create_v3(base_id, table_id, {"title": "New Field", "type": "SingleLineText"})
 client.field_update_v3(base_id, field_id, {"title": "Renamed Field"})
 client.field_delete_v3(base_id, field_id)
 

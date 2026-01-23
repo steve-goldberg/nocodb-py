@@ -272,7 +272,7 @@ def test_tables_list_v3_calls_correct_url(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"tables": [{"id": "tbl_abc", "title": "Users"}]}
+    expected_response = {"list": [{"id": "tbl_abc", "title": "Users"}]}
     mock_session.request.return_value = _create_mock_response(200, expected_response)
 
     token = APIToken("test-token")
@@ -292,7 +292,7 @@ def test_tables_list_v3_with_params(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"tables": []}
+    expected_response = {"list": []}
     mock_session.request.return_value = _create_mock_response(200, expected_response)
 
     token = APIToken("test-token")
@@ -444,7 +444,7 @@ def test_table_create_v3_calls_correct_url(mock_requests_session):
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
 
-    body = {"title": "NewTable", "columns": [{"title": "Name", "uidt": "SingleLineText"}]}
+    body = {"title": "NewTable", "columns": [{"title": "Name", "type": "SingleLineText"}]}
     result = client.table_create_v3("base123", body)
 
     call_args = mock_session.request.call_args
@@ -778,13 +778,13 @@ def test_field_create_v3_calls_correct_url(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"id": "fld_new", "title": "Email", "uidt": "Email"}
+    expected_response = {"id": "fld_new", "title": "Email", "type": "Email"}
     mock_session.request.return_value = _create_mock_response(200, expected_response)
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
 
-    body = {"title": "Email", "uidt": "Email"}
+    body = {"title": "Email", "type": "Email"}
     result = client.field_create_v3("base123", "tbl456", body)
 
     call_args = mock_session.request.call_args
@@ -800,7 +800,7 @@ def test_field_read_v3_calls_correct_url(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}
+    expected_response = {"id": "fld_abc", "title": "Name", "type": "SingleLineText"}
     mock_session.request.return_value = _create_mock_response(200, expected_response)
 
     token = APIToken("test-token")
@@ -916,7 +916,7 @@ def test_column_read_v3_alias_emits_warning(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}
+    expected_response = {"id": "fld_abc", "title": "Name", "type": "SingleLineText"}
     mock_session.request.return_value = _create_mock_response(200, expected_response)
 
     token = APIToken("test-token")
