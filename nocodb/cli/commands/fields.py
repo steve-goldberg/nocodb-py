@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from rich.console import Console
 
 from nocodb.cli.client import create_client, get_base_id
 from nocodb.cli.config import Config
@@ -15,6 +16,28 @@ from nocodb.cli.formatters import (
     print_single_item,
     print_success,
 )
+from nocodb.exceptions import NocoDBAPIError
+
+console = Console(stderr=True)
+
+
+def _extract_error_message(e: Exception) -> str:
+    """Extract detailed error message from exception.
+
+    For NocoDBAPIError, attempts to extract the actual error message
+    from the API response (msg or message field).
+    """
+    if isinstance(e, NocoDBAPIError):
+        # Try to get detailed message from response
+        if e.response_json:
+            detail = e.response_json.get("msg") or e.response_json.get("message")
+            if detail:
+                return f"{e.status_code}: {detail}"
+        # Fall back to response text if available
+        if e.response_text and len(e.response_text) < 200:
+            return f"{e.status_code}: {e.response_text}"
+        return str(e)
+    return str(e)
 
 app = typer.Typer(no_args_is_help=True, help="Field management")
 
@@ -54,7 +77,7 @@ def list_fields(
             print_items_table(fields, title="Fields", columns=columns)
 
     except Exception as e:
-        print_error(str(e), as_json=output_json)
+        print_error(_extract_error_message(e), as_json=output_json)
         raise typer.Exit(1)
 
 
@@ -78,7 +101,7 @@ def get_field(
             print_single_item(result, title=f"Field: {result.get('title', field_id)}")
 
     except Exception as e:
-        print_error(str(e), as_json=output_json)
+        print_error(_extract_error_message(e), as_json=output_json)
         raise typer.Exit(1)
 
 
@@ -89,7 +112,8 @@ def create_field(
     title: Optional[str] = typer.Option(None, "--title", help="Field title"),
     field_type: Optional[str] = typer.Option(None, "--type", help="Field type (SingleLineText, Number, Email, etc.)"),
     options_json: Optional[str] = typer.Option(None, "--options", "-o", help="Field options as JSON"),
-    file: Optional[str] = typer.Option(None, "--file", help="JSON file with fields array for batch create"),
+    file: Optional[str] = typer.Option(None, "--file", help="JSON file with fields array for batch create (recommended for Links, SingleSelect)"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show request details"),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
 ) -> None:
     """Create one or more fields.
@@ -100,6 +124,8 @@ def create_field(
 
     File format for batch create:
         [{"title": "Email", "type": "Email"}, {"title": "Name", "type": "SingleLineText"}]
+
+    Note: For Links and SingleSelect fields, use --file for reliable JSON handling.
     """
     try:
         config = _get_config(ctx)
@@ -126,14 +152,17 @@ def create_field(
             errors = []
             for i, field_config in enumerate(fields_to_create, 1):
                 try:
+                    if verbose:
+                        console.print(f"[dim]Request [{i}]: {json.dumps(field_config, indent=2)}[/dim]")
                     result = client.field_create_v3(base_id, table_id, field_config)
                     results.append(result)
                     if not output_json:
                         print_success(f"[{i}/{len(fields_to_create)}] Created: {field_config.get('title')}")
                 except Exception as e:
-                    errors.append({"field": field_config.get("title"), "error": str(e)})
+                    error_msg = _extract_error_message(e)
+                    errors.append({"field": field_config.get("title"), "error": error_msg})
                     if not output_json:
-                        print_error(f"[{i}/{len(fields_to_create)}] Failed: {field_config.get('title')} - {e}")
+                        print_error(f"[{i}/{len(fields_to_create)}] Failed: {field_config.get('title')} - {error_msg}")
 
             if output_json:
                 print_json({"created": results, "errors": errors})
@@ -150,6 +179,9 @@ def create_field(
                 options = json.loads(options_json)
                 body.update(options)
 
+            if verbose:
+                console.print(f"[dim]Request body: {json.dumps(body, indent=2)}[/dim]")
+
             result = client.field_create_v3(base_id, table_id, body)
 
             if output_json:
@@ -162,7 +194,7 @@ def create_field(
         print_error(f"Invalid JSON: {e}", as_json=output_json)
         raise typer.Exit(1)
     except Exception as e:
-        print_error(str(e), as_json=output_json)
+        print_error(_extract_error_message(e), as_json=output_json)
         raise typer.Exit(1)
 
 
@@ -202,7 +234,7 @@ def update_field(
         print_error(f"Invalid JSON for options: {e}", as_json=output_json)
         raise typer.Exit(1)
     except Exception as e:
-        print_error(str(e), as_json=output_json)
+        print_error(_extract_error_message(e), as_json=output_json)
         raise typer.Exit(1)
 
 
@@ -256,9 +288,10 @@ def delete_field(
                     if not output_json:
                         print_success(f"[{i}/{len(field_ids)}] Deleted: {fid}")
                 except Exception as e:
-                    errors.append({"field_id": fid, "error": str(e)})
+                    error_msg = _extract_error_message(e)
+                    errors.append({"field_id": fid, "error": error_msg})
                     if not output_json:
-                        print_error(f"[{i}/{len(field_ids)}] Failed: {fid} - {e}")
+                        print_error(f"[{i}/{len(field_ids)}] Failed: {fid} - {error_msg}")
 
             if output_json:
                 print_json({"deleted": results, "errors": errors})
@@ -280,5 +313,5 @@ def delete_field(
                 print_success(f"Deleted field {field_id}")
 
     except Exception as e:
-        print_error(str(e), as_json=output_json)
+        print_error(_extract_error_message(e), as_json=output_json)
         raise typer.Exit(1)

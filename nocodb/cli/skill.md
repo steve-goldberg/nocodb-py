@@ -121,16 +121,42 @@ nocodb fields delete --ids "fld_xxx,fld_yyy,fld_zzz" [-f] [--json]
 
 ### Batch Fields Create File Format
 
+**Recommended:** Use `--file` for complex field types (SingleSelect, MultiSelect, Links).
+
 ```json
 [
   {"title": "Email", "type": "Email"},
   {"title": "Status", "type": "SingleSelect", "options": {"choices": [
-    {"title": "Active", "color": "green"},
-    {"title": "Inactive", "color": "red"}
+    {"title": "Active"},
+    {"title": "Inactive"}
   ]}},
   {"title": "Notes", "type": "LongText"}
 ]
 ```
+
+**Note:** Colors for SingleSelect/MultiSelect choices must be set via NocoDB UI after creation.
+
+### Links Fields (Use --file)
+
+For Links fields, always use `--file` to avoid shell escaping issues with nested JSON:
+
+```bash
+# Create links_field.json
+cat > /tmp/links_field.json << 'EOF'
+[{
+  "title": "Related Tasks",
+  "type": "Links",
+  "options": {
+    "relation_type": "mm",
+    "related_table_id": "tbl_xyz"
+  }
+}]
+EOF
+
+nocodb fields create -t TABLE_ID --file /tmp/links_field.json
+```
+
+**Relation types:** `hm` (has-many), `mm` (many-to-many), `bt` (belongs-to, auto-created)
 
 ## Linked Records
 
@@ -383,3 +409,49 @@ nocodb fields delete --ids "fld_xxx,fld_yyy" [-f] [--json]
 ```json
 [{"id": 1, "fields": {"Status": "Done"}}, {"id": 2, "fields": {"Status": "Active"}}]
 ```
+
+## Troubleshooting
+
+### 400 Bad Request on field create
+
+| Issue | Solution |
+|-------|----------|
+| SingleSelect with colors | Omit colors from choices, set via NocoDB UI |
+| Links field inline `--options` | Use `--file` instead (shell escaping issues with nested JSON) |
+| Unknown field type | Check spelling and case (e.g., `SingleLineText` not `singlelinetext`) |
+
+### Debug field creation
+
+Use `--verbose` to see the exact request body being sent:
+
+```bash
+nocodb fields create -t TABLE_ID --title "Test" --type Links \
+  --options '{"options": {"relation_type": "hm", "related_table_id": "..."}}' \
+  --verbose
+```
+
+### Complex field types
+
+For **SingleSelect**, **MultiSelect**, and **Links** fields, prefer `--file` over `--options`:
+
+```bash
+# Write schema to file
+cat > schema.json << 'EOF'
+[{"title": "Category", "type": "SingleSelect", "options": {"choices": [
+  {"title": "Option A"},
+  {"title": "Option B"}
+]}}]
+EOF
+
+# Create from file (more reliable)
+nocodb fields create -t TABLE_ID --file schema.json
+```
+
+### Common errors
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `401 Unauthorized` | Invalid or missing token | Check `NOCODB_TOKEN` env var |
+| `404 Not Found` | Invalid table/base/field ID | Verify IDs with `list` commands |
+| `400 Bad Request` | Invalid field options | Use `--verbose` to debug, try `--file` approach |
+| `422 Unprocessable` | Validation error | Check field title uniqueness, required options |
