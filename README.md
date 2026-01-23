@@ -449,13 +449,13 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 
 ## Recent Changes
 
+- chore: remove local dev files from git history (tests/, features.json, etc.)
+- docs: add CONTRIBUTING.md with PR guidelines and GitHub templates
 - fix(api): remove v2 operations that don't work in self-hosted (webhooks create/get/update/test, views create/get)
 - fix(cli): stop double-wrapping record ID in delete command
 - fix(docs): update API docs to match actual v3 response format
 - feat(cli): add full CLI for managing NocoDB from the terminal
 - fix(api): correct v3 response handling and field retrieval
-- feat(api): implement Wave 8 - attachments, button actions, view filters/sorts, webhooks, base members
-- chore: relicense from MIT to AGPL-3.0
 
 ## License
 

@@ -38,10 +38,8 @@ Use `/nocodbv3` skill for NocoDB API documentation when implementing features.
 ## Commands
 
 ```bash
-# Setup environment
-./init.sh
-
-# Install in development mode (with venv active)
+# Install in development mode
+python -m venv venv
 source venv/bin/activate
 pip install -e .
 
@@ -87,18 +85,14 @@ nocodb-api-v3-client/
 │       ├── __init__.py
 │       ├── requests_client.py      # HTTP client (v2/v3 methods)
 │       └── requests_client_test.py # Unit tests (130 tests)
-├── tests/
-│   ├── integration_examples.py     # Integration examples (manual)
-│   └── test_integration_full.py    # Full integration tests (requires live NocoDB)
+├── skills/                   # Claude Code skills
+│   └── pr-overview.md        # PR description generator
+├── .github/                  # GitHub templates
+│   ├── PULL_REQUEST_TEMPLATE.md
+│   └── ISSUE_TEMPLATE/
 ├── setup.py                  # Package config
-├── features.json             # Feature tracking (47 features)
-├── tests.json                # Test specifications
-├── e2e-progress.txt          # E2E test discovery log
-├── claude-progress.txt       # Development log
-├── MIGRATION.md              # Migration guide
-├── PLAN.md                   # Implementation plan
-├── contributors.md           # Contributors list
-├── init.sh                   # Environment setup script
+├── CONTRIBUTING.md           # Contribution guidelines
+├── MIGRATION.md              # v2/v3 API reference
 └── README.md                 # User documentation
 ```
 
