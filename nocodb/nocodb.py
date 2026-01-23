@@ -200,6 +200,11 @@ class NocoDBClient:
         row_id: int,
         column_name: str,
     ) -> dict:
+        """Deprecated: Use linked_records_list_v3() instead.
+
+        .. deprecated:: 3.0.0
+            This method uses the v1 API. Use :meth:`linked_records_list_v3` for v3 API.
+        """
         pass
 
     @abstractmethod
@@ -448,6 +453,27 @@ class NocoDBClient:
         pass
 
     @abstractmethod
+    def bases_list(
+        self,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all bases using v2 API (for self-hosted NocoDB).
+
+        GET /api/v2/meta/bases
+
+        Note: This uses v2 API because v3 bases list is Enterprise-only.
+        Self-hosted NocoDB community edition must use this endpoint.
+
+        Args:
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'list' array of bases
+            Example: {"list": [{"id": "...", "title": "...", ...}]}
+        """
+        pass
+
+    @abstractmethod
     def tables_list_v3(
         self,
         base_id: str,
@@ -461,6 +487,85 @@ class NocoDBClient:
 
         Returns:
             Dict with 'tables' array
+        """
+        pass
+
+    @abstractmethod
+    def table_create_v3(
+        self,
+        base_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new table using v3 API.
+
+        POST /api/v3/meta/bases/{baseId}/tables
+
+        Args:
+            base_id: The base (project) ID
+            body: Table configuration (title, columns, etc.)
+                Example: {"title": "MyTable", "columns": [...]}
+
+        Returns:
+            Created table object with id, title, etc.
+        """
+        pass
+
+    @abstractmethod
+    def table_read_v3(
+        self,
+        base_id: str,
+        table_id: str,
+    ) -> Dict[str, Any]:
+        """Read a single table's metadata using v3 API.
+
+        GET /api/v3/meta/bases/{baseId}/tables/{tableId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+
+        Returns:
+            Table object with id, title, columns, etc.
+        """
+        pass
+
+    @abstractmethod
+    def table_update_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a table's metadata using v3 API.
+
+        PATCH /api/v3/meta/bases/{baseId}/tables/{tableId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            body: Fields to update (e.g., {"title": "NewName"})
+
+        Returns:
+            Updated table object
+        """
+        pass
+
+    @abstractmethod
+    def table_delete_v3(
+        self,
+        base_id: str,
+        table_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a table using v3 API.
+
+        DELETE /api/v3/meta/bases/{baseId}/tables/{tableId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+
+        Returns:
+            Deletion confirmation
         """
         pass
 
@@ -562,5 +667,63 @@ class NocoDBClient:
 
         Returns:
             Deletion confirmation
+        """
+        pass
+
+    # =========================================================================
+    # v3 Meta API Methods - API Tokens
+    # =========================================================================
+
+    @abstractmethod
+    def tokens_list(
+        self,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all API tokens.
+
+        GET /api/v3/meta/tokens
+
+        Args:
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'tokens' array
+            Example: {"tokens": [{"id": "...", "token": "nc_...", "description": "..."}]}
+        """
+        pass
+
+    @abstractmethod
+    def token_create(
+        self,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new API token.
+
+        POST /api/v3/meta/tokens
+
+        Args:
+            body: Token configuration with 'description' key
+                Example: {"description": "My API Token"}
+
+        Returns:
+            Created token object with 'id', 'token', and 'description'
+            Example: {"id": "...", "token": "nc_...", "description": "My API Token"}
+        """
+        pass
+
+    @abstractmethod
+    def token_delete(
+        self,
+        token_id: str,
+    ) -> Any:
+        """Delete an API token.
+
+        DELETE /api/v3/meta/tokens/{tokenId}
+
+        Args:
+            token_id: The API token ID
+
+        Returns:
+            Deletion confirmation (may be empty or boolean)
         """
         pass

@@ -9,10 +9,14 @@ class NocoDBAPIUris(Enum):
     """NocoDB API URI prefixes.
 
     v3 API uses baseId/tableId in paths instead of org/project/table.
+    v2 API is required for some features (bases list) in self-hosted NocoDB.
     """
     # Legacy v1 prefixes (deprecated)
     V1_DB_DATA_PREFIX = "api/v1/db/data/"
     V1_DB_META_PREFIX = "api/v1/db/meta/"
+
+    # v2 API prefixes (needed for self-hosted features)
+    V2_META_PREFIX = "api/v2/meta/"
 
     # v3 API prefixes
     V3_DATA_PREFIX = "api/v3/data/"
@@ -35,6 +39,9 @@ class NocoDBAPI:
         # v3 API base URIs
         self.__base_data_uri = urljoin(base_uri + "/", NocoDBAPIUris.V3_DATA_PREFIX.value)
         self.__base_meta_uri = urljoin(base_uri + "/", NocoDBAPIUris.V3_META_PREFIX.value)
+
+        # v2 API base URIs (for self-hosted features like bases list)
+        self.__base_meta_uri_v2 = urljoin(base_uri + "/", NocoDBAPIUris.V2_META_PREFIX.value)
 
         # Legacy v1 API base URIs (for backwards compatibility)
         self.__base_data_uri_v1 = urljoin(base_uri + "/", NocoDBAPIUris.V1_DB_DATA_PREFIX.value)
@@ -159,6 +166,22 @@ class NocoDBAPI:
         return urljoin(self.__base_meta_uri, "/".join(("bases", base_id)))
 
     # =========================================================================
+    # v2 Meta API URI Methods (for self-hosted NocoDB)
+    # =========================================================================
+
+    def get_bases_list_uri_v2(self) -> str:
+        """Get the URI for listing bases using v2 API.
+
+        v2 endpoint: GET /api/v2/meta/bases
+
+        Note: v3 bases list is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Returns:
+            The URI for bases list
+        """
+        return urljoin(self.__base_meta_uri_v2, "bases")
+
+    # =========================================================================
     # v3 Meta API URI Methods - Tables
     # =========================================================================
 
@@ -251,6 +274,33 @@ class NocoDBAPI:
             The URI for single script operations
         """
         return urljoin(self.__base_meta_uri, "/".join(("bases", base_id, "scripts", script_id)))
+
+    # =========================================================================
+    # v3 Meta API URI Methods - API Tokens
+    # =========================================================================
+
+    def get_tokens_uri(self) -> str:
+        """Get the URI for listing/creating API tokens.
+
+        v3 endpoint: GET/POST /api/v3/meta/tokens
+
+        Returns:
+            The URI for API tokens list/create operations
+        """
+        return urljoin(self.__base_meta_uri, "tokens")
+
+    def get_token_uri(self, token_id: str) -> str:
+        """Get the URI for single API token operations.
+
+        v3 endpoint: DELETE /api/v3/meta/tokens/{tokenId}
+
+        Args:
+            token_id: The API token ID
+
+        Returns:
+            The URI for single API token operations
+        """
+        return urljoin(self.__base_meta_uri, "/".join(("tokens", token_id)))
 
     # =========================================================================
     # Deprecated v1 API Methods - Backwards Compatibility

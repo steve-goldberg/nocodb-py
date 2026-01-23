@@ -296,11 +296,11 @@ def test_tables_list_v3_with_params(mock_requests_session):
 
 @mock.patch.object(requests_lib, "Session")
 def test_bases_list_v3_calls_correct_url(mock_requests_session):
-    """Test that bases_list_v3 calls the correct v3 API endpoint."""
+    """Test that bases_list_v3 calls the v2 API endpoint (v3 is Enterprise-only)."""
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"bases": [{"id": "base_abc", "title": "My Base"}]}
+    expected_response = {"list": [{"id": "base_abc", "title": "My Base"}]}
     mock_session.request.return_value = _create_mock_response(200, expected_response)
 
     token = APIToken("test-token")
@@ -310,8 +310,113 @@ def test_bases_list_v3_calls_correct_url(mock_requests_session):
 
     call_args = mock_session.request.call_args
     assert call_args[0][0] == "GET"
-    # v3 API path for listing bases (without workspace for self-hosted)
-    assert "/api/v3/meta/bases" in call_args[0][1]
+    # Uses v2 API - v3 bases list is Enterprise-only
+    assert "/api/v2/meta/bases" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_bases_list_calls_correct_url(mock_requests_session):
+    """Test that bases_list calls the v2 API endpoint for self-hosted NocoDB."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"list": [{"id": "base_abc", "title": "My Base"}]}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.bases_list()
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    # v2 API for self-hosted NocoDB community edition
+    assert "/api/v2/meta/bases" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_table_create_v3_calls_correct_url(mock_requests_session):
+    """Test that table_create_v3 calls POST on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "tbl_new", "title": "NewTable"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"title": "NewTable", "columns": [{"title": "Name", "uidt": "SingleLineText"}]}
+    result = client.table_create_v3("base123", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v3/meta/bases/base123/tables" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_table_read_v3_calls_correct_url(mock_requests_session):
+    """Test that table_read_v3 calls GET on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "tbl_abc", "title": "Users", "columns": []}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.table_read_v3("base123", "tbl_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    assert "/api/v3/meta/bases/base123/tables/tbl_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_table_update_v3_calls_correct_url(mock_requests_session):
+    """Test that table_update_v3 calls PATCH on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "tbl_abc", "title": "RenamedTable"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"title": "RenamedTable"}
+    result = client.table_update_v3("base123", "tbl_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "PATCH"
+    assert "/api/v3/meta/bases/base123/tables/tbl_abc" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_table_delete_v3_calls_correct_url(mock_requests_session):
+    """Test that table_delete_v3 calls DELETE on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.table_delete_v3("base123", "tbl_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "DELETE"
+    assert "/api/v3/meta/bases/base123/tables/tbl_abc" in call_args[0][1]
     assert result == expected_response
 
 

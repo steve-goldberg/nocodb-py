@@ -128,6 +128,16 @@ class NocoDBRequestsClient(NocoDBClient):
     def table_create(
         self, project: NocoDBProject, body: dict
     ) -> dict:
+        """Create a table in a project (DEPRECATED).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`table_create_v3` with base_id instead.
+        """
+        warnings.warn(
+            "table_create() is deprecated. Use table_create_v3(base_id, body) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._request(
             "POST",
             url=self.__api_info.get_project_tables_uri(project),
@@ -158,6 +168,16 @@ class NocoDBRequestsClient(NocoDBClient):
     def table_read(
         self, tableId: str,
     ) -> dict:
+        """Read a table's metadata (DEPRECATED).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`table_read_v3` with base_id and table_id instead.
+        """
+        warnings.warn(
+            "table_read() is deprecated. Use table_read_v3(base_id, table_id) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._request(
             "GET",
             url=self.__api_info.get_table_meta_uri(tableId)
@@ -166,6 +186,16 @@ class NocoDBRequestsClient(NocoDBClient):
     def table_update(
         self, tableId: str, body: dict
     ):
+        """Update a table's metadata (DEPRECATED).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`table_update_v3` with base_id and table_id instead.
+        """
+        warnings.warn(
+            "table_update() is deprecated. Use table_update_v3(base_id, table_id, body) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._request(
             "PATCH",
             url=self.__api_info.get_table_meta_uri(tableId),
@@ -175,6 +205,16 @@ class NocoDBRequestsClient(NocoDBClient):
     def table_delete(
         self, tableId: str,
     ) -> dict:
+        """Delete a table (DEPRECATED).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`table_delete_v3` with base_id and table_id instead.
+        """
+        warnings.warn(
+            "table_delete() is deprecated. Use table_delete_v3(base_id, table_id) instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._request(
             "DELETE",
             url=self.__api_info.get_table_meta_uri(tableId)
@@ -183,10 +223,21 @@ class NocoDBRequestsClient(NocoDBClient):
     def table_reorder(
         self, tableId: str, order: int
     ) -> dict:
+        """Reorder a table (DEPRECATED - not available in v3 API).
+
+        .. deprecated:: 3.0.0
+            This method uses v1 API and is not available in v3 API.
+            Table ordering in v3 is managed differently.
+        """
+        warnings.warn(
+            "table_reorder() is deprecated and not available in v3 API.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         return self._request(
             "POST",
             url=self.__api_info.get_table_meta_uri(tableId, "reorder"),
-            json={ "order": order }
+            json={"order": order}
         ).json()
     
     def table_column_create(
@@ -487,23 +538,44 @@ class NocoDBRequestsClient(NocoDBClient):
         workspace_id: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """List bases using v3 API.
+        """List bases using v2 API (v3 is Enterprise-only).
 
-        For self-hosted NocoDB (no workspaces):
-            GET /api/v3/meta/bases
+        Note: Despite the method name, this uses v2 API because v3 bases list
+        is Enterprise-only and not available in self-hosted NocoDB.
 
-        For Enterprise/Cloud (with workspaces):
-            GET /api/v3/meta/workspaces/{workspaceId}/bases
+        GET /api/v2/meta/bases
 
         Args:
-            workspace_id: The workspace ID (optional, not needed for self-hosted)
+            workspace_id: Ignored for self-hosted (no workspaces in community edition)
             params: Optional query parameters
 
         Returns:
-            Dict with 'bases' array
-            Example: {"bases": [{"id": "base_abc", "title": "My Base"}]}
+            Dict with 'list' array of bases
+            Example: {"list": [{"id": "base_abc", "title": "My Base"}]}
         """
-        url = self.__api_info.get_bases_uri(workspace_id)
+        # Use v2 API - v3 bases list is Enterprise-only
+        url = self.__api_info.get_bases_list_uri_v2()
+        return self._request("GET", url, params=params).json()
+
+    def bases_list(
+        self,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all bases using v2 API (for self-hosted NocoDB).
+
+        GET /api/v2/meta/bases
+
+        Note: This uses v2 API because v3 bases list is Enterprise-only.
+        Self-hosted NocoDB community edition must use this endpoint.
+
+        Args:
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'list' array of bases
+            Example: {"list": [{"id": "...", "title": "...", ...}]}
+        """
+        url = self.__api_info.get_bases_list_uri_v2()
         return self._request("GET", url, params=params).json()
 
     def tables_list_v3(
@@ -525,3 +597,144 @@ class NocoDBRequestsClient(NocoDBClient):
         """
         url = self.__api_info.get_tables_uri(base_id)
         return self._request("GET", url, params=params).json()
+
+    def table_create_v3(
+        self,
+        base_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new table using v3 API.
+
+        POST /api/v3/meta/bases/{baseId}/tables
+
+        Args:
+            base_id: The base (project) ID
+            body: Table configuration (title, columns, etc.)
+                Example: {"title": "MyTable", "columns": [...]}
+
+        Returns:
+            Created table object with id, title, etc.
+        """
+        url = self.__api_info.get_tables_uri(base_id)
+        return self._request("POST", url, json=body).json()
+
+    def table_read_v3(
+        self,
+        base_id: str,
+        table_id: str,
+    ) -> Dict[str, Any]:
+        """Read a single table's metadata using v3 API.
+
+        GET /api/v3/meta/bases/{baseId}/tables/{tableId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+
+        Returns:
+            Table object with id, title, columns, etc.
+        """
+        url = self.__api_info.get_table_meta_uri_v3(base_id, table_id)
+        return self._request("GET", url).json()
+
+    def table_update_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a table's metadata using v3 API.
+
+        PATCH /api/v3/meta/bases/{baseId}/tables/{tableId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            body: Fields to update (e.g., {"title": "NewName"})
+
+        Returns:
+            Updated table object
+        """
+        url = self.__api_info.get_table_meta_uri_v3(base_id, table_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def table_delete_v3(
+        self,
+        base_id: str,
+        table_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a table using v3 API.
+
+        DELETE /api/v3/meta/bases/{baseId}/tables/{tableId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_table_meta_uri_v3(base_id, table_id)
+        return self._request("DELETE", url).json()
+
+    # =========================================================================
+    # v3 Meta API Methods - API Tokens
+    # =========================================================================
+
+    def tokens_list(
+        self,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all API tokens.
+
+        GET /api/v3/meta/tokens
+
+        Args:
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'tokens' array
+            Example: {"tokens": [{"id": "...", "token": "nc_...", "description": "..."}]}
+        """
+        url = self.__api_info.get_tokens_uri()
+        return self._request("GET", url, params=params).json()
+
+    def token_create(
+        self,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new API token.
+
+        POST /api/v3/meta/tokens
+
+        Args:
+            body: Token configuration with 'description' key
+                Example: {"description": "My API Token"}
+
+        Returns:
+            Created token object with 'id', 'token', and 'description'
+            Example: {"id": "...", "token": "nc_...", "description": "My API Token"}
+        """
+        url = self.__api_info.get_tokens_uri()
+        return self._request("POST", url, json=body).json()
+
+    def token_delete(
+        self,
+        token_id: str,
+    ) -> Any:
+        """Delete an API token.
+
+        DELETE /api/v3/meta/tokens/{tokenId}
+
+        Args:
+            token_id: The API token ID
+
+        Returns:
+            Deletion confirmation (may be empty or boolean)
+        """
+        url = self.__api_info.get_token_uri(token_id)
+        response = self._request("DELETE", url)
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            return True
