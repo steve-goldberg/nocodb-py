@@ -71,7 +71,7 @@ nocodb fields list -t TABLE_ID              # List fields
 nocodb fields get FIELD_ID                  # Get field details
 nocodb fields create -t TABLE_ID --title "Name" --type TYPE
 nocodb fields create -t TABLE_ID --title "Status" --type SingleSelect \
-  -o '{"options":[{"title":"Active","color":"#00FF00"},{"title":"Inactive","color":"#FF0000"}]}'
+  -o '{"options":{"choices":[{"title":"Active","color":"#00FF00"},{"title":"Inactive","color":"#FF0000"}]}}'
 nocodb fields update FIELD_ID --title "New" # Rename field
 nocodb fields delete FIELD_ID               # Delete field
 ```
@@ -130,8 +130,8 @@ nocodb views sorts delete SORT_ID
 | `Time` | Time only | - |
 | `Duration` | Time span | - |
 | `Checkbox` | Boolean | - |
-| `SingleSelect` | Dropdown | `{"options":[{"title":"A","color":"#00FF00"},{"title":"B","color":"#FF0000"}]}` |
-| `MultiSelect` | Multi-dropdown | `{"options":[{"title":"A","color":"#00FF00"},{"title":"B","color":"#FF0000"}]}` |
+| `SingleSelect` | Dropdown | `{"options":{"choices":[{"title":"A","color":"#00FF00"}]}}` |
+| `MultiSelect` | Multi-dropdown | `{"options":{"choices":[{"title":"A","color":"#00FF00"}]}}` |
 | `Rating` | Star rating | `{"max":5}` |
 | `Attachment` | File upload | - |
 | `Links` | Relationship | See below |
