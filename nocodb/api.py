@@ -341,6 +341,197 @@ class NocoDBAPI:
     # Note: get_webhook_test_uri removed - webhook_test not supported in self-hosted NocoDB
 
     # =========================================================================
+    # v2 Export API URI Methods
+    # =========================================================================
+
+    def get_export_uri(self, view_id: str) -> str:
+        """Get the URI for exporting view data to CSV.
+
+        v2 endpoint: POST /api/v2/export/{viewId}/csv
+
+        Note: Only CSV format is supported in self-hosted NocoDB.
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for export operation
+        """
+        # Export uses a different base path: /api/v2/export/
+        base_uri = self.__base_meta_uri_v2.replace("/meta/", "/export/")
+        return base_uri + view_id + "/csv"
+
+    # =========================================================================
+    # v2 View Columns API URI Methods
+    # =========================================================================
+
+    def get_view_columns_uri(self, view_id: str) -> str:
+        """Get the URI for listing/creating view columns.
+
+        v2 endpoint: GET/POST /api/v2/meta/views/{viewId}/columns
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for view columns list/create operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id, "columns")))
+
+    def get_view_column_uri(self, view_id: str, column_id: str) -> str:
+        """Get the URI for single view column operations.
+
+        v2 endpoint: PATCH /api/v2/meta/views/{viewId}/columns/{columnId}
+
+        Args:
+            view_id: The view ID
+            column_id: The column ID
+
+        Returns:
+            The URI for single view column operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id, "columns", column_id)))
+
+    def get_view_hide_all_uri(self, view_id: str) -> str:
+        """Get the URI for hiding all columns in a view.
+
+        v2 endpoint: POST /api/v2/meta/views/{viewId}/hide-all
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for hide-all operation
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id, "hide-all")))
+
+    def get_view_show_all_uri(self, view_id: str) -> str:
+        """Get the URI for showing all columns in a view.
+
+        v2 endpoint: POST /api/v2/meta/views/{viewId}/show-all
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for show-all operation
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id, "show-all")))
+
+    # =========================================================================
+    # v2 Shared Views API URI Methods
+    # =========================================================================
+
+    def get_shared_views_uri(self, table_id: str) -> str:
+        """Get the URI for listing shared views for a table.
+
+        v2 endpoint: GET /api/v2/meta/tables/{tableId}/share
+
+        Args:
+            table_id: The table ID
+
+        Returns:
+            The URI for shared views list
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("tables", table_id, "share")))
+
+    def get_shared_view_uri(self, view_id: str) -> str:
+        """Get the URI for shared view operations.
+
+        v2 endpoint: POST/PATCH/DELETE /api/v2/meta/views/{viewId}/share
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for shared view operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id, "share")))
+
+    # =========================================================================
+    # v2 Storage API URI Methods
+    # =========================================================================
+
+    def get_storage_upload_uri(self) -> str:
+        """Get the URI for uploading files to storage.
+
+        v2 endpoint: POST /api/v2/storage/upload
+
+        Note: This is for general file upload, not record-attached attachments.
+
+        Returns:
+            The URI for storage upload
+        """
+        # Storage uses a different base path: /api/v2/storage/
+        base_uri = self.__base_meta_uri_v2.replace("/meta/", "/storage/")
+        return base_uri + "upload"
+
+    # =========================================================================
+    # v2 Filter/Sort Metadata API URI Methods
+    # =========================================================================
+
+    def get_filter_children_uri(self, filter_group_id: str) -> str:
+        """Get the URI for listing filter group children.
+
+        v2 endpoint: GET /api/v2/meta/filters/{filterGroupId}/children
+
+        Args:
+            filter_group_id: The filter group ID
+
+        Returns:
+            The URI for filter children list
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("filters", filter_group_id, "children")))
+
+    # =========================================================================
+    # v2 Webhook Filters/Logs API URI Methods
+    # =========================================================================
+
+    def get_webhook_filters_uri(self, hook_id: str) -> str:
+        """Get the URI for listing/creating webhook filters.
+
+        v2 endpoint: GET/POST /api/v2/meta/hooks/{hookId}/filters
+
+        Args:
+            hook_id: The webhook (hook) ID
+
+        Returns:
+            The URI for webhook filters list/create operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("hooks", hook_id, "filters")))
+
+    def get_webhook_logs_uri(self, hook_id: str) -> str:
+        """Get the URI for listing webhook logs.
+
+        v2 endpoint: GET /api/v2/meta/hooks/{hookId}/logs
+
+        Args:
+            hook_id: The webhook (hook) ID
+
+        Returns:
+            The URI for webhook logs list
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("hooks", hook_id, "logs")))
+
+    def get_webhook_sample_payload_uri(self, table_id: str, event: str, operation: str, version: str = "v2") -> str:
+        """Get the URI for webhook sample payload.
+
+        v2 endpoint: GET /api/v2/meta/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}
+
+        Args:
+            table_id: The table ID
+            event: The event type (e.g., "records")
+            operation: The operation (e.g., "insert", "update", "delete")
+            version: The payload version (default: "v2")
+
+        Returns:
+            The URI for webhook sample payload
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join((
+            "tables", table_id, "hooks", "samplePayload", event, operation, version
+        )))
+
+    # =========================================================================
     # v3 Meta API URI Methods - Tables
     # =========================================================================
 

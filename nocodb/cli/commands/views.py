@@ -389,3 +389,313 @@ def delete_sort(
     except Exception as e:
         print_error(str(e), as_json=output_json)
         raise typer.Exit(1)
+
+
+@sorts_app.command("get")
+def get_sort(
+    ctx: typer.Context,
+    sort_id: str = typer.Argument(..., help="Sort ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Get a single sort's details."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.view_sort_get(sort_id)
+
+        if output_json:
+            print_json(result)
+        else:
+            print_single_item(result, title="Sort")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@filters_app.command("get")
+def get_filter(
+    ctx: typer.Context,
+    filter_id: str = typer.Argument(..., help="Filter ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Get a single filter's details."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.view_filter_get(filter_id)
+
+        if output_json:
+            print_json(result)
+        else:
+            print_single_item(result, title="Filter")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@filters_app.command("children")
+def list_filter_children(
+    ctx: typer.Context,
+    filter_group_id: str = typer.Argument(..., help="Filter group ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """List children of a filter group (nested filters)."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.view_filter_children(filter_group_id)
+
+        filters = result.get("list", result.get("children", []))
+
+        if output_json:
+            print_json(result)
+        else:
+            columns = [
+                ("id", "ID"),
+                ("fk_column_id", "Column"),
+                ("comparison_op", "Operator"),
+                ("value", "Value"),
+            ]
+            print_items_table(filters, title="Filter Children", columns=columns)
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+# View Columns subcommands
+columns_app = typer.Typer(no_args_is_help=True, help="View column visibility operations")
+app.add_typer(columns_app, name="columns")
+
+
+@columns_app.command("list")
+def list_view_columns(
+    ctx: typer.Context,
+    view_id: str = typer.Argument(..., help="View ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """List view columns with visibility settings."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.view_columns_list(view_id)
+
+        columns_list = result.get("list", result.get("columns", []))
+
+        if output_json:
+            print_json(result)
+        else:
+            columns = [
+                ("id", "ID"),
+                ("fk_column_id", "Column ID"),
+                ("show", "Visible"),
+                ("order", "Order"),
+            ]
+            print_items_table(columns_list, title="View Columns", columns=columns)
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@columns_app.command("update")
+def update_view_column(
+    ctx: typer.Context,
+    view_id: str = typer.Argument(..., help="View ID"),
+    column_id: str = typer.Argument(..., help="View column ID"),
+    show: Optional[bool] = typer.Option(None, "--show/--hide", help="Show or hide the column"),
+    order: Optional[int] = typer.Option(None, "--order", "-o", help="Column order position"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Update a view column's visibility or order."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        body = {}
+        if show is not None:
+            body["show"] = show
+        if order is not None:
+            body["order"] = order
+
+        if not body:
+            print_error("No update fields provided. Use --show/--hide or --order", as_json=output_json)
+            raise typer.Exit(1)
+
+        result = client.view_column_update(view_id, column_id, body)
+
+        if output_json:
+            print_json(result)
+        else:
+            print_success(f"Updated column {column_id} in view {view_id}")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@columns_app.command("hide-all")
+def hide_all_columns(
+    ctx: typer.Context,
+    view_id: str = typer.Argument(..., help="View ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Hide all columns in a view."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.view_columns_hide_all(view_id)
+
+        if output_json:
+            print_json(result or {"success": True})
+        else:
+            print_success(f"Hidden all columns in view {view_id}")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@columns_app.command("show-all")
+def show_all_columns(
+    ctx: typer.Context,
+    view_id: str = typer.Argument(..., help="View ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Show all columns in a view."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.view_columns_show_all(view_id)
+
+        if output_json:
+            print_json(result or {"success": True})
+        else:
+            print_success(f"Showing all columns in view {view_id}")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+# Shared Views subcommands
+share_app = typer.Typer(no_args_is_help=True, help="Shared view (public link) operations")
+app.add_typer(share_app, name="share")
+
+
+@share_app.command("list")
+def list_shared_views(
+    ctx: typer.Context,
+    table_id: str = typer.Option(..., "--table-id", "-t", help="Table ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """List all shared views for a table."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.shared_views_list(table_id)
+
+        shares = result.get("list", result.get("sharedViews", []))
+
+        if output_json:
+            print_json(result)
+        else:
+            columns = [
+                ("id", "ID"),
+                ("fk_view_id", "View ID"),
+                ("uuid", "UUID"),
+                ("password", "Password"),
+            ]
+            print_items_table(shares, title="Shared Views", columns=columns)
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@share_app.command("create")
+def create_shared_view(
+    ctx: typer.Context,
+    view_id: str = typer.Argument(..., help="View ID"),
+    password: Optional[str] = typer.Option(None, "--password", "-p", help="Password protect the share"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Create a public share link for a view."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.shared_view_create(view_id, password=password)
+
+        if output_json:
+            print_json(result)
+        else:
+            print_success(f"Created shared view for {view_id}")
+            print_single_item(result, title="Shared View")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@share_app.command("update")
+def update_shared_view(
+    ctx: typer.Context,
+    view_id: str = typer.Argument(..., help="View ID"),
+    password: Optional[str] = typer.Option(None, "--password", "-p", help="New password (empty to remove)"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Update a shared view's password."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.shared_view_update(view_id, password=password)
+
+        if output_json:
+            print_json(result)
+        else:
+            print_success(f"Updated shared view for {view_id}")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@share_app.command("delete")
+def delete_shared_view(
+    ctx: typer.Context,
+    view_id: str = typer.Argument(..., help="View ID"),
+    force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Delete a shared view link."""
+    try:
+        if not force and not output_json:
+            confirm = typer.confirm(f"Delete shared view for {view_id}?")
+            if not confirm:
+                print_error("Cancelled", as_json=output_json)
+                raise typer.Exit(0)
+
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        result = client.shared_view_delete(view_id)
+
+        if output_json:
+            print_json(result or {"deleted": True})
+        else:
+            print_success(f"Deleted shared view for {view_id}")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)

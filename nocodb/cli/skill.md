@@ -131,35 +131,115 @@ nocodb links unlink -t TABLE_ID -l LINK_FIELD_ID -r RECORD_ID --targets "22" [-f
 ```bash
 nocodb views list -t TABLE_ID [--json]
 nocodb views get VIEW_ID [--json]
-nocodb views create -t TABLE_ID --title "My View" --type grid [--json]
 nocodb views update VIEW_ID --title "New Name" [--json]
 nocodb views delete VIEW_ID [-f]
 
 # View filters
 nocodb views filters list -v VIEW_ID [--json]
+nocodb views filters get FILTER_ID [--json]
 nocodb views filters create -v VIEW_ID --column FIELD_ID --op eq --value "test" [--json]
 nocodb views filters delete FILTER_ID [-f]
+nocodb views filters children FILTER_GROUP_ID [--json]
 
 # View sorts
 nocodb views sorts list -v VIEW_ID [--json]
+nocodb views sorts get SORT_ID [--json]
 nocodb views sorts create -v VIEW_ID --column FIELD_ID --direction asc [--json]
 nocodb views sorts delete SORT_ID [-f]
+
+# View columns (visibility per view)
+nocodb views columns list VIEW_ID [--json]
+nocodb views columns update VIEW_ID COLUMN_ID [--show/--hide] [--order N] [--json]
+nocodb views columns hide-all VIEW_ID [--json]
+nocodb views columns show-all VIEW_ID [--json]
+
+# Shared views (public links)
+nocodb views share list -t TABLE_ID [--json]
+nocodb views share create VIEW_ID [--password SECRET] [--json]
+nocodb views share update VIEW_ID [--password SECRET] [--json]
+nocodb views share delete VIEW_ID [-f] [--json]
 ```
 
 **View Types:** grid, gallery, kanban, calendar, form
+
+**Note:** View create is not available via API in self-hosted community edition. Use the NocoDB UI to create views.
 
 ## Webhooks
 
 ```bash
 nocodb webhooks list -t TABLE_ID [--json]
-nocodb webhooks get HOOK_ID [--json]
-nocodb webhooks create -t TABLE_ID --title "My Hook" --event after.insert --url "https://..." [--json]
-nocodb webhooks update HOOK_ID --active false [--json]
-nocodb webhooks delete HOOK_ID [-f]
-nocodb webhooks test HOOK_ID [--json]
+nocodb webhooks delete HOOK_ID [-f] [--json]
+
+# Webhook logs
+nocodb webhooks logs HOOK_ID [--json]
+
+# Webhook sample payload (preview what webhook will send)
+nocodb webhooks sample -t TABLE_ID [--event records] [--operation insert|update|delete] [--version v2] [--json]
+
+# Webhook filters
+nocodb webhooks filters list HOOK_ID [--json]
+nocodb webhooks filters create HOOK_ID --column FIELD_ID --op eq --value "test" [--json]
 ```
 
 **Events:** after.insert, after.update, after.delete, after.bulkInsert, after.bulkUpdate, after.bulkDelete
+
+**Note:** Webhook create, get, update, and test are not available via API in self-hosted community edition. Use the NocoDB UI to create/manage webhooks.
+
+## Members
+
+```bash
+# List base members
+nocodb members list [--json]
+
+# Invite member to base
+nocodb members invite EMAIL [--role owner|creator|editor|commenter|viewer] [--json]
+
+# Update member role
+nocodb members update USER_ID --role editor [--json]
+
+# Remove member from base
+nocodb members remove USER_ID [-f] [--json]
+```
+
+**Roles:** owner, creator, editor, commenter, viewer
+
+## Export
+
+```bash
+# Export view data as CSV
+nocodb export VIEW_ID [--output FILE] [--offset N] [--limit N]
+nocodb export csv VIEW_ID [--output FILE] [--offset N] [--limit N]
+
+# Examples
+nocodb export vw_xxx                      # Print to stdout
+nocodb export vw_xxx -o data.csv          # Save to file
+nocodb export vw_xxx --limit 100          # Export first 100 rows
+nocodb export vw_xxx --offset 50 --limit 50  # Export rows 51-100
+```
+
+## Storage
+
+```bash
+# Upload file to NocoDB storage (not attached to any record)
+nocodb storage upload FILE [--content-type MIME] [--json]
+
+# Examples
+nocodb storage upload ./document.pdf
+nocodb storage upload ./image.png --content-type image/png
+nocodb storage upload ./data.json --json
+```
+
+**Note:** For attaching files to specific records, use `nocodb attachments upload` instead.
+
+## Attachments
+
+```bash
+# Upload file and attach to a record field
+nocodb attachments upload -t TABLE_ID -r RECORD_ID -f FIELD_ID FILE [--json]
+
+# Examples
+nocodb attachments upload -t tbl_xxx -r rec_xxx -f fld_xxx ./photo.jpg
+```
 
 ## Shortcut Commands
 

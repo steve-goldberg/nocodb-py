@@ -98,7 +98,7 @@ def init_config(
     console.print("For security, set your token via NOCODB_TOKEN environment variable.")
 
 
-from .commands import attachments, bases, fields, links, members, records, tables, views, webhooks
+from .commands import attachments, bases, export, fields, links, members, records, storage, tables, views, webhooks
 
 app.add_typer(records.app, name="records", help="Record operations")
 app.add_typer(bases.app, name="bases", help="Base management")
@@ -109,6 +109,8 @@ app.add_typer(views.app, name="views", help="View management")
 app.add_typer(webhooks.app, name="webhooks", help="Webhook management")
 app.add_typer(attachments.app, name="attachments", help="Attachment operations")
 app.add_typer(members.app, name="members", help="Base member management")
+app.add_typer(export.app, name="export", help="Export view data to CSV")
+app.add_typer(storage.app, name="storage", help="Storage operations")
 
 
 @app.command("list")
