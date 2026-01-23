@@ -74,7 +74,9 @@ def upload_file(
             print_json(result)
         else:
             print_success(f"Uploaded {filename} ({content_type})")
-            print_single_item(result, title="Storage File")
+            # SDK returns a list of uploaded files, extract first item for display
+            display_item = result[0] if isinstance(result, list) and result else result
+            print_single_item(display_item, title="Storage File")
 
     except Exception as e:
         print_error(str(e), as_json=output_json)

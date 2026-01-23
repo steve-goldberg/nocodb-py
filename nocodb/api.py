@@ -36,6 +36,9 @@ class NocoDBAPI:
         Args:
             base_uri: The base URL of the NocoDB instance (e.g., "https://app.nocodb.com")
         """
+        # Store the raw base URI for download URLs
+        self.__raw_base_uri = base_uri.rstrip("/")
+
         # v3 API base URIs
         self.__base_data_uri = urljoin(base_uri + "/", NocoDBAPIUris.V3_DATA_PREFIX.value)
         self.__base_meta_uri = urljoin(base_uri + "/", NocoDBAPIUris.V3_META_PREFIX.value)
@@ -360,6 +363,32 @@ class NocoDBAPI:
         # Export uses a different base path: /api/v2/export/
         base_uri = self.__base_meta_uri_v2.replace("/meta/", "/export/")
         return base_uri + view_id + "/csv"
+
+    def get_jobs_uri(self, base_id: str) -> str:
+        """Get the URI for job status polling.
+
+        v2 endpoint: POST /api/v2/jobs/{baseId}
+
+        Args:
+            base_id: The base ID
+
+        Returns:
+            The URI for job status operations
+        """
+        # Jobs uses a different base path: /api/v2/jobs/
+        base_uri = self.__base_meta_uri_v2.replace("/meta/", "/jobs/")
+        return base_uri + base_id
+
+    def get_download_uri(self, relative_path: str) -> str:
+        """Get the full download URI for a relative path.
+
+        Args:
+            relative_path: The relative path from job result (e.g., "dltemp/...")
+
+        Returns:
+            The full download URL
+        """
+        return f"{self.__raw_base_uri}/{relative_path}"
 
     # =========================================================================
     # v2 View Columns API URI Methods

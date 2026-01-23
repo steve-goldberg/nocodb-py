@@ -1466,6 +1466,7 @@ class NocoDBRequestsClient(NocoDBClient):
 
     def export_view(
         self,
+        base_id: str,
         view_id: str,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
@@ -1482,6 +1483,7 @@ class NocoDBRequestsClient(NocoDBClient):
         Note: Only CSV format is supported in self-hosted NocoDB.
 
         Args:
+            base_id: The base ID (required for job status polling)
             view_id: The view ID
             offset: Optional row offset for pagination
             limit: Optional row limit
@@ -1526,28 +1528,37 @@ class NocoDBRequestsClient(NocoDBClient):
             job_id = job_data.get("id") or job_data.get("job_id")
             if job_id:
                 start_time = time.time()
+                jobs_url = self.__api_info.get_jobs_uri(base_id)
                 while time.time() - start_time < timeout:
-                    # Check job status (endpoint may vary by NocoDB version)
-                    status_url = url.replace("/csv", f"/jobs/{job_id}")
-                    status_response = self._request("GET", status_url)
+                    # Check job status via POST /api/v2/jobs/{baseId}
+                    # Query all jobs with empty body, then find ours
+                    status_response = self._request("POST", jobs_url, json={})
                     status_data = status_response.json()
 
-                    status = status_data.get("status", "").lower()
-                    if status in ("completed", "done", "success"):
-                        # Download the result
-                        download_url = status_data.get("url") or status_data.get("result", {}).get("url")
-                        if download_url:
-                            download_response = self.__session.get(download_url)
-                            download_response.raise_for_status()
-                            return download_response.content
-                        # If result is inline
-                        if "data" in status_data:
-                            return status_data["data"].encode("utf-8")
+                    # Response contains list of jobs, find ours
+                    jobs = status_data if isinstance(status_data, list) else [status_data]
+                    for job in jobs:
+                        if job.get("id") == job_id:
+                            status = job.get("status", "").lower()
+                            if status in ("completed", "done", "success"):
+                                # Get download URL from result
+                                result = job.get("result", {})
+                                download_path = result.get("url") if isinstance(result, dict) else None
+                                if download_path:
+                                    # Build full URL from relative path
+                                    download_url = self.__api_info.get_download_uri(download_path)
+                                    download_response = self.__session.get(download_url)
+                                    download_response.raise_for_status()
+                                    return download_response.content
+                                # If result is inline
+                                if "data" in job:
+                                    return job["data"].encode("utf-8")
 
-                    if status in ("failed", "error"):
-                        raise NocoDBAPIError(
-                            f"Export job failed: {status_data.get('error', 'Unknown error')}"
-                        )
+                            if status in ("failed", "error"):
+                                raise NocoDBAPIError(
+                                    f"Export job failed: {job.get('error', 'Unknown error')}"
+                                )
+                            break
 
                     time.sleep(poll_interval)
 
@@ -1778,12 +1789,15 @@ class NocoDBRequestsClient(NocoDBClient):
             "file": (filename, content, content_type)
         }
 
-        # Temporarily remove Content-Type header for multipart
-        headers = dict(self.__session.headers)
-        if "Content-Type" in headers:
-            del headers["Content-Type"]
+        # Use requests.post directly instead of session to avoid
+        # Content-Type: application/json header interfering with multipart boundary
+        # Only include auth header, let requests auto-generate multipart Content-Type
+        auth_headers = {
+            k: v for k, v in self.__session.headers.items()
+            if k.lower() != "content-type"
+        }
 
-        response = self.__session.request("POST", url, files=files, headers=headers)
+        response = requests.post(url, files=files, headers=auth_headers)
         response.raise_for_status()
         return response.json()
 

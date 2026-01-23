@@ -41,9 +41,14 @@ def export_csv(
     """
     try:
         config = _get_config(ctx)
+        if not config.base_id:
+            print_error("base_id is required for export. Set via --base-id or NOCODB_BASE_ID.")
+            raise typer.Exit(1)
+
         client = create_client(config)
 
         csv_content = client.export_view(
+            config.base_id,
             view_id,
             offset=offset,
             limit=limit,
