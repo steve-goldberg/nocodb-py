@@ -2,16 +2,27 @@
 
 Python client for NocoDB API - **Self-hosted community edition**.
 
-NocoDB is an open-source Airtable alternative. This client provides a simple Python interface for the NocoDB REST API.
+NocoDB is an open-source Airtable alternative. This client provides a complete Python interface for the NocoDB REST API with full v3 Data API and hybrid v2/v3 Meta API support.
 
 ## Features
 
-- Full v3 Data API support (records, links, attachments)
-- v3 Meta API for tables and fields
-- v2 Meta API for bases list, views, filters, sorts, webhooks
+- Full v3 Data API (records, links, attachments, button actions)
+- v3 Meta API (bases, tables, fields, base members)
+- v2 Meta API (list bases, views, filters, sorts, webhooks)
 - Query filters with logical operators
-- Batch operations support
-- MIT licensed
+- Batch operations for records
+- Pagination helpers
+- 138 tests, fully typed
+
+## Project Status
+
+**Version 3.0.0** - Feature complete
+
+| Category | Status |
+|----------|--------|
+| Data API (v3) | 12 of 12 |
+| Meta API | 25 of 25 |
+| **Total** | **37 of 37 (100%)** |
 
 ## API Version Summary
 
@@ -22,13 +33,15 @@ This client uses a hybrid v2/v3 approach based on self-hosted NocoDB availabilit
 | Records CRUD | v3 | Full support |
 | Linked Records | v3 | Link/unlink operations |
 | Attachments | v3 | File uploads |
+| Button Actions | v3 | Trigger formula/webhook/AI/script buttons |
 | List Bases | v2 | v3 requires Enterprise |
-| Get/Update/Delete Base | v3 | Works in community |
+| Base CRUD | v3 | Get/update/delete |
+| Base Members | v3 | List/add/update/remove |
 | Tables CRUD | v3 | Full support |
 | Fields CRUD | v3 | Full support |
 | Views CRUD | v2 | v3 requires Enterprise |
 | View Filters/Sorts | v2 | v3 requires Enterprise |
-| Webhooks | v2 | Not yet in v3 |
+| Webhooks | v2 | Full CRUD + test |
 
 ## Installation
 
@@ -187,6 +200,26 @@ client.linked_records_unlink_v3(base_id, table_id, link_field_id, record_id,
     unlink_records=[{"id": 22}])
 ```
 
+### v3 Attachments & Button Actions
+
+```python
+# Upload attachment to a record's attachment field
+client.attachment_upload_v3(
+    base_id, table_id, record_id, field_id,
+    filename="document.pdf",
+    content_type="application/pdf",
+    file_content=base64_encoded_content
+)
+
+# Trigger button action (max 25 rows per request)
+result = client.button_action_trigger_v3(
+    base_id, table_id, column_id,
+    row_ids=[1, 2, 3],
+    preview=False  # Set True for dry run
+)
+# Returns array of updated records
+```
+
 ### v2 Meta API - Bases & Views
 
 ```python
@@ -197,14 +230,25 @@ bases = client.bases_list_v3()
 # List views for a table (v2 API)
 views = client.views_list(table_id)
 
-# Get view filters (v2 API)
+# View filters CRUD (v2 API)
 filters = client.view_filters_list(view_id)
+client.view_filter_create(view_id, {"fk_column_id": "col_id", "comparison_op": "eq", "value": "test"})
+client.view_filter_update(filter_id, {"value": "new_value"})
+client.view_filter_delete(filter_id)
 
-# Get view sorts (v2 API)
+# View sorts CRUD (v2 API)
 sorts = client.view_sorts_list(view_id)
+client.view_sort_create(view_id, {"fk_column_id": "col_id", "direction": "asc"})
+client.view_sort_update(sort_id, {"direction": "desc"})
+client.view_sort_delete(sort_id)
+
+# Webhooks CRUD (v2 API)
+webhooks = client.webhooks_list(table_id)
+client.webhook_create(table_id, {"title": "My Hook", "event": "after.insert", "url": "https://..."})
+client.webhook_test(hook_id)
 ```
 
-### v3 Meta API - Tables & Fields
+### v3 Meta API - Tables, Fields & Members
 
 ```python
 # List tables in a base
@@ -214,8 +258,18 @@ tables = client.tables_list_v3(base_id)
 # Get table schema
 table_meta = client.table_get_v3(base_id, table_id)
 
-# List fields
+# Fields CRUD
 fields = client.fields_list_v3(base_id, table_id)
+field = client.field_read_v3(base_id, field_id)
+client.field_create_v3(base_id, table_id, {"title": "New Field", "uidt": "SingleLineText"})
+client.field_update_v3(base_id, field_id, {"title": "Renamed Field"})
+client.field_delete_v3(base_id, field_id)
+
+# Base members management (v3 API)
+members = client.base_members_list(base_id)
+client.base_member_add(base_id, {"email": "user@example.com", "role": "editor"})
+client.base_member_update(base_id, user_id, {"role": "viewer"})
+client.base_member_remove(base_id, user_id)
 ```
 
 ## Available Filters
@@ -329,6 +383,14 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 - Workspace members
 - v3 Views API
 - v3 Bases list endpoint
+
+## Recent Changes
+
+- feat(api): implement Wave 8 - attachments, button actions, view filters/sorts, webhooks, base members
+- feat(api): implement Wave 7 - links, fields, views, base CRUD
+- feat(api): implement Wave 6 - bases list v2, table CRUD, tokens
+- feat(api): implement Wave 5 - pagination, scripts, docs, tests
+- chore: relicense from MIT to AGPL-3.0
 
 ## License
 

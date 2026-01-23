@@ -1,3 +1,4 @@
+import base64
 import warnings
 from typing import Optional, List, Dict, Any, Union
 from ..nocodb import (
@@ -577,6 +578,86 @@ class NocoDBRequestsClient(NocoDBClient):
 
         return self._request("DELETE", url, json=body).json()
 
+    def button_action_trigger_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        column_id: str,
+        row_ids: List[Union[int, str]],
+        preview: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Trigger button action on specified rows using v3 API.
+
+        POST /api/v3/data/{baseId}/{tableId}/actions/{columnId}
+
+        Supports Formula, Webhook, AI, and Script button types.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            column_id: The button column ID
+            row_ids: List of record IDs to trigger action on (max 25 per request)
+            preview: If True, preview mode - does not execute the action
+
+        Returns:
+            List of updated DataRecordV3 objects with 'id' and 'fields'
+            Example: [{"id": 1, "fields": {"Name": "Updated"}}]
+
+        Raises:
+            ValueError: If row_ids contains more than 25 items
+        """
+        if len(row_ids) > 25:
+            raise ValueError("Maximum 25 rows per button action request")
+
+        url = self.__api_info.get_button_action_uri(base_id, table_id, column_id)
+        body = {
+            "rowIds": row_ids,
+            "preview": preview
+        }
+        return self._request("POST", url, json=body).json()
+
+    def attachment_upload_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        record_id: Union[int, str],
+        field_id: str,
+        filename: str,
+        content: bytes,
+        content_type: str,
+    ) -> Dict[str, Any]:
+        """Upload attachment to a record field using v3 API.
+
+        POST /api/v3/data/{baseId}/{tableId}/records/{recordId}/fields/{fieldId}/upload
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            record_id: The record ID
+            field_id: The attachment field ID
+            filename: The filename for the uploaded file
+            content: The file content as bytes
+            content_type: The MIME type of the file (e.g., "image/png")
+
+        Returns:
+            The uploaded attachment metadata
+            Example: {"url": "https://...", "title": "image.png", "mimetype": "image/png"}
+        """
+        url = self.__api_info.get_attachment_upload_uri(
+            base_id, table_id, str(record_id), field_id
+        )
+
+        # Convert bytes content to base64
+        file_base64 = base64.b64encode(content).decode("utf-8")
+
+        body = {
+            "contentType": content_type,
+            "file": file_base64,
+            "filename": filename
+        }
+
+        return self._request("POST", url, json=body).json()
+
     # =========================================================================
     # v3 Meta API Methods
     # =========================================================================
@@ -927,6 +1008,26 @@ class NocoDBRequestsClient(NocoDBClient):
         url = self.__api_info.get_fields_uri(base_id, table_id)
         return self._request("POST", url, json=body).json()
 
+    def field_read_v3(
+        self,
+        base_id: str,
+        field_id: str,
+    ) -> Dict[str, Any]:
+        """Get details of a specific field/column.
+
+        GET /api/v3/meta/bases/{baseId}/fields/{fieldId}
+
+        Args:
+            base_id: The base (project) ID
+            field_id: The field ID
+
+        Returns:
+            Field object with id, title, uidt, etc.
+            Example: {"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}
+        """
+        url = self.__api_info.get_field_uri(base_id, field_id)
+        return self._request("GET", url).json()
+
     def field_update_v3(
         self,
         base_id: str,
@@ -1006,6 +1107,23 @@ class NocoDBRequestsClient(NocoDBClient):
             stacklevel=2
         )
         return self.field_create_v3(base_id, table_id, body)
+
+    def column_read_v3(
+        self,
+        base_id: str,
+        field_id: str,
+    ) -> Dict[str, Any]:
+        """Alias for field_read_v3 (backwards compatibility).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`field_read_v3` instead.
+        """
+        warnings.warn(
+            "column_read_v3() is deprecated. Use field_read_v3() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.field_read_v3(base_id, field_id)
 
     def column_update_v3(
         self,
@@ -1154,4 +1272,419 @@ class NocoDBRequestsClient(NocoDBClient):
             Deletion confirmation
         """
         url = self.__api_info.get_view_uri(view_id)
+        return self._request("DELETE", url).json()
+
+    # =========================================================================
+    # v2 Meta API Methods - View Sorts
+    # =========================================================================
+
+    def view_sorts_list(
+        self,
+        view_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all sorts for a view using v2 API.
+
+        GET /api/v2/meta/views/{viewId}/sorts
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'sorts' array
+            Example: {"sorts": [{"id": "srt_abc", "fk_column_id": "fld_123", "direction": "asc"}]}
+        """
+        url = self.__api_info.get_view_sorts_uri(view_id)
+        return self._request("GET", url, params=params).json()
+
+    def view_sort_create(
+        self,
+        view_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new sort for a view using v2 API.
+
+        POST /api/v2/meta/views/{viewId}/sorts
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+            body: Sort configuration
+                Example: {"fk_column_id": "fld_123", "direction": "asc"}
+
+        Returns:
+            Created sort object with id, fk_column_id, direction, etc.
+        """
+        url = self.__api_info.get_view_sorts_uri(view_id)
+        return self._request("POST", url, json=body).json()
+
+    def view_sort_update(
+        self,
+        sort_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a sort using v2 API.
+
+        PATCH /api/v2/meta/sorts/{sortId}
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            sort_id: The sort ID
+            body: Fields to update (e.g., {"direction": "desc"})
+
+        Returns:
+            Updated sort object
+        """
+        url = self.__api_info.get_sort_uri(sort_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def view_sort_delete(
+        self,
+        sort_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a sort using v2 API.
+
+        DELETE /api/v2/meta/sorts/{sortId}
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            sort_id: The sort ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_sort_uri(sort_id)
+        return self._request("DELETE", url).json()
+
+    # =========================================================================
+    # v2 Meta API Methods - View Filters
+    # =========================================================================
+
+    def view_filters_list(
+        self,
+        view_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all filters for a view using v2 API.
+
+        GET /api/v2/meta/views/{viewId}/filters
+
+        Note: v3 View Filters API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'list' array of filters
+            Example: {"list": [{"id": "flt_abc", "fk_column_id": "fld_123", "comparison_op": "eq", "value": "test"}]}
+        """
+        url = self.__api_info.get_view_filters_uri(view_id)
+        return self._request("GET", url, params=params).json()
+
+    def view_filter_create(
+        self,
+        view_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new filter for a view using v2 API.
+
+        POST /api/v2/meta/views/{viewId}/filters
+
+        Note: v3 View Filters API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Filter comparison operators:
+            - eq, neq: Equal, Not equal
+            - like, nlike: Like, Not like
+            - gt, lt, gte, lte: Greater/Less than (or equal)
+            - is, isnot: Is null, Is not null
+            - empty, notempty: Is empty, Is not empty
+            - in, notin: In array, Not in array
+
+        Args:
+            view_id: The view ID
+            body: Filter configuration
+                Example: {"fk_column_id": "fld_123", "comparison_op": "eq", "value": "test"}
+
+        Returns:
+            Created filter object with id, fk_column_id, comparison_op, value, etc.
+        """
+        url = self.__api_info.get_view_filters_uri(view_id)
+        return self._request("POST", url, json=body).json()
+
+    def view_filter_update(
+        self,
+        filter_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a filter using v2 API.
+
+        PATCH /api/v2/meta/filters/{filterId}
+
+        Note: v3 View Filters API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            filter_id: The filter ID
+            body: Fields to update (e.g., {"comparison_op": "neq", "value": "updated"})
+
+        Returns:
+            Updated filter object
+        """
+        url = self.__api_info.get_filter_uri(filter_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def view_filter_delete(
+        self,
+        filter_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a filter using v2 API.
+
+        DELETE /api/v2/meta/filters/{filterId}
+
+        Note: v3 View Filters API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            filter_id: The filter ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_filter_uri(filter_id)
+        return self._request("DELETE", url).json()
+
+    # =========================================================================
+    # v2 Meta API Methods - Webhooks
+    # =========================================================================
+
+    def webhooks_list(
+        self,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all webhooks for a table using v2 API.
+
+        GET /api/v2/meta/tables/{tableId}/hooks
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Args:
+            table_id: The table ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'list' array of webhooks
+            Example: {"list": [{"id": "hk_abc", "title": "My Webhook", "event": "after.insert"}]}
+        """
+        url = self.__api_info.get_webhooks_uri(table_id)
+        return self._request("GET", url, params=params).json()
+
+    def webhook_create(
+        self,
+        table_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new webhook for a table using v2 API.
+
+        POST /api/v2/meta/tables/{tableId}/hooks
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Webhook events:
+            - after.insert: After record insert
+            - after.update: After record update
+            - after.delete: After record delete
+            - after.bulkInsert: After bulk insert
+            - after.bulkUpdate: After bulk update
+            - after.bulkDelete: After bulk delete
+
+        Args:
+            table_id: The table ID
+            body: Webhook configuration
+                Example: {
+                    "title": "My Webhook",
+                    "event": "after.insert",
+                    "notification": {
+                        "type": "URL",
+                        "payload": {"method": "POST", "path": "https://example.com/hook"}
+                    }
+                }
+
+        Returns:
+            Created webhook object with id, title, event, etc.
+        """
+        url = self.__api_info.get_webhooks_uri(table_id)
+        return self._request("POST", url, json=body).json()
+
+    def webhook_read(
+        self,
+        hook_id: str,
+    ) -> Dict[str, Any]:
+        """Read a single webhook's metadata using v2 API.
+
+        GET /api/v2/meta/hooks/{hookId}
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Args:
+            hook_id: The webhook (hook) ID
+
+        Returns:
+            Webhook object with id, title, event, notification, etc.
+        """
+        url = self.__api_info.get_webhook_uri(hook_id)
+        return self._request("GET", url).json()
+
+    def webhook_update(
+        self,
+        hook_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a webhook's configuration using v2 API.
+
+        PATCH /api/v2/meta/hooks/{hookId}
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Args:
+            hook_id: The webhook (hook) ID
+            body: Fields to update (e.g., {"title": "NewName", "active": false})
+
+        Returns:
+            Updated webhook object
+        """
+        url = self.__api_info.get_webhook_uri(hook_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def webhook_delete(
+        self,
+        hook_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a webhook using v2 API.
+
+        DELETE /api/v2/meta/hooks/{hookId}
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Args:
+            hook_id: The webhook (hook) ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_webhook_uri(hook_id)
+        return self._request("DELETE", url).json()
+
+    def webhook_test(
+        self,
+        hook_id: str,
+        body: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Test a webhook using v2 API.
+
+        POST /api/v2/meta/hooks/test/{hookId}
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        This endpoint triggers a test call to the webhook URL with sample payload.
+
+        Args:
+            hook_id: The webhook (hook) ID
+            body: Optional test payload data
+
+        Returns:
+            Test result indicating success or failure
+        """
+        url = self.__api_info.get_webhook_test_uri(hook_id)
+        return self._request("POST", url, json=body).json()
+
+    # =========================================================================
+    # v3 Meta API Methods - Base Members
+    # =========================================================================
+
+    def base_members_list(
+        self,
+        base_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all members of a base.
+
+        GET /api/v3/meta/bases/{baseId}/members
+
+        Args:
+            base_id: The base (project) ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'members' array
+            Example: {"members": [{"id": "usr_abc", "email": "user@example.com", "roles": "editor"}]}
+        """
+        url = self.__api_info.get_base_members_uri(base_id)
+        return self._request("GET", url, params=params).json()
+
+    def base_member_add(
+        self,
+        base_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Add a member to a base.
+
+        POST /api/v3/meta/bases/{baseId}/members
+
+        Args:
+            base_id: The base (project) ID
+            body: Member configuration with email and roles
+                Example: {"email": "user@example.com", "roles": "editor"}
+                Roles: owner, creator, editor, commenter, viewer
+
+        Returns:
+            Created member object
+        """
+        url = self.__api_info.get_base_members_uri(base_id)
+        return self._request("POST", url, json=body).json()
+
+    def base_member_update(
+        self,
+        base_id: str,
+        member_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a base member's role.
+
+        PATCH /api/v3/meta/bases/{baseId}/members/{memberId}
+
+        Args:
+            base_id: The base (project) ID
+            member_id: The member ID
+            body: Fields to update (e.g., {"roles": "viewer"})
+                Roles: owner, creator, editor, commenter, viewer
+
+        Returns:
+            Updated member object
+        """
+        url = self.__api_info.get_base_member_uri(base_id, member_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def base_member_remove(
+        self,
+        base_id: str,
+        member_id: str,
+    ) -> Dict[str, Any]:
+        """Remove a member from a base.
+
+        DELETE /api/v3/meta/bases/{baseId}/members/{memberId}
+
+        Args:
+            base_id: The base (project) ID
+            member_id: The member ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_base_member_uri(base_id, member_id)
         return self._request("DELETE", url).json()

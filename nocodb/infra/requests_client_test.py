@@ -1,3 +1,4 @@
+import base64
 from unittest import mock
 import json
 
@@ -782,6 +783,26 @@ def test_field_create_v3_calls_correct_url(mock_requests_session):
 
 
 @mock.patch.object(requests_lib, "Session")
+def test_field_read_v3_calls_correct_url(mock_requests_session):
+    """Test that field_read_v3 calls GET on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.field_read_v3("base123", "fld_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    assert "/api/v3/meta/bases/base123/fields/fld_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
 def test_field_update_v3_calls_correct_url(mock_requests_session):
     """Test that field_update_v3 calls PATCH on the correct v3 API endpoint."""
     mock_session = mock.Mock()
@@ -874,6 +895,32 @@ def test_column_create_v3_alias_emits_warning(mock_requests_session):
         assert issubclass(w[0].category, DeprecationWarning)
         assert "column_create_v3() is deprecated" in str(w[0].message)
 
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_column_read_v3_alias_emits_warning(mock_requests_session):
+    """Test that column_read_v3 alias emits deprecation warning."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    import warnings
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = client.column_read_v3("base123", "fld_abc")
+        assert len(w) == 1
+        assert issubclass(w[0].category, DeprecationWarning)
+        assert "column_read_v3() is deprecated" in str(w[0].message)
+
+    # Verify it still works correctly
+    call_args = mock_session.request.call_args
+    assert "/api/v3/meta/bases/base123/fields/fld_abc" in call_args[0][1]
     assert result == expected_response
 
 
@@ -1069,4 +1116,921 @@ def test_view_delete_calls_correct_url(mock_requests_session):
     call_args = mock_session.request.call_args
     assert call_args[0][0] == "DELETE"
     assert "/api/v2/meta/views/vw_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+# =========================================================================
+# v2 Meta API Tests - View Sorts
+# =========================================================================
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_sorts_list_calls_correct_url(mock_requests_session):
+    """Test that view_sorts_list calls GET on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"sorts": [{"id": "srt_abc", "fk_column_id": "fld_123", "direction": "asc"}]}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.view_sorts_list("vw_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    assert "/api/v2/meta/views/vw_abc/sorts" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_sorts_list_with_params(mock_requests_session):
+    """Test that view_sorts_list passes query parameters correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"sorts": []}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    params = {"includeSystem": True}
+    client.view_sorts_list("vw_abc", params=params)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["params"] == params
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_sort_create_calls_correct_url(mock_requests_session):
+    """Test that view_sort_create calls POST on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "srt_new", "fk_column_id": "fld_123", "direction": "asc"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"fk_column_id": "fld_123", "direction": "asc"}
+    result = client.view_sort_create("vw_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v2/meta/views/vw_abc/sorts" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_sort_create_descending(mock_requests_session):
+    """Test that view_sort_create works with descending direction."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "srt_new", "fk_column_id": "fld_456", "direction": "desc"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"fk_column_id": "fld_456", "direction": "desc"}
+    result = client.view_sort_create("vw_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == body
+    assert result["direction"] == "desc"
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_sort_update_calls_correct_url(mock_requests_session):
+    """Test that view_sort_update calls PATCH on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "srt_abc", "fk_column_id": "fld_123", "direction": "desc"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"direction": "desc"}
+    result = client.view_sort_update("srt_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "PATCH"
+    assert "/api/v2/meta/sorts/srt_abc" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_sort_delete_calls_correct_url(mock_requests_session):
+    """Test that view_sort_delete calls DELETE on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.view_sort_delete("srt_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "DELETE"
+    assert "/api/v2/meta/sorts/srt_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+# =========================================================================
+# v2 Meta API Tests - View Filters
+# =========================================================================
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filters_list_calls_correct_url(mock_requests_session):
+    """Test that view_filters_list calls GET on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"list": [{"id": "flt_abc", "fk_column_id": "fld_123", "comparison_op": "eq", "value": "test"}]}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.view_filters_list("vw_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    assert "/api/v2/meta/views/vw_abc/filters" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filters_list_with_params(mock_requests_session):
+    """Test that view_filters_list passes query parameters correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"list": []}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    params = {"includeSystem": True}
+    client.view_filters_list("vw_abc", params=params)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["params"] == params
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filter_create_calls_correct_url(mock_requests_session):
+    """Test that view_filter_create calls POST on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "flt_new", "fk_column_id": "fld_123", "comparison_op": "eq", "value": "test"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"fk_column_id": "fld_123", "comparison_op": "eq", "value": "test"}
+    result = client.view_filter_create("vw_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v2/meta/views/vw_abc/filters" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filter_create_with_different_operators(mock_requests_session):
+    """Test that view_filter_create works with different comparison operators."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    # Test creating a filter with 'like' operator
+    expected_response = {"id": "flt_new", "fk_column_id": "fld_456", "comparison_op": "like", "value": "%search%"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"fk_column_id": "fld_456", "comparison_op": "like", "value": "%search%"}
+    result = client.view_filter_create("vw_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == body
+    assert result["comparison_op"] == "like"
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filter_create_with_null_check(mock_requests_session):
+    """Test that view_filter_create works with 'is null' operator."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    # Test creating a filter with 'is' operator (null check)
+    expected_response = {"id": "flt_null", "fk_column_id": "fld_789", "comparison_op": "is", "value": None}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"fk_column_id": "fld_789", "comparison_op": "is", "value": None}
+    result = client.view_filter_create("vw_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == body
+    assert result["comparison_op"] == "is"
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filter_update_calls_correct_url(mock_requests_session):
+    """Test that view_filter_update calls PATCH on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "flt_abc", "fk_column_id": "fld_123", "comparison_op": "neq", "value": "updated"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"comparison_op": "neq", "value": "updated"}
+    result = client.view_filter_update("flt_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "PATCH"
+    assert "/api/v2/meta/filters/flt_abc" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filter_update_change_operator(mock_requests_session):
+    """Test that view_filter_update correctly changes comparison operator."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "flt_abc", "fk_column_id": "fld_123", "comparison_op": "gte", "value": "100"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"comparison_op": "gte", "value": "100"}
+    result = client.view_filter_update("flt_abc", body)
+
+    assert result["comparison_op"] == "gte"
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filter_delete_calls_correct_url(mock_requests_session):
+    """Test that view_filter_delete calls DELETE on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.view_filter_delete("flt_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "DELETE"
+    assert "/api/v2/meta/filters/flt_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_view_filter_delete_with_different_ids(mock_requests_session):
+    """Test that view_filter_delete works with different filter IDs."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.view_filter_delete("filter_xyz_123")
+
+    call_args = mock_session.request.call_args
+    assert "/api/v2/meta/filters/filter_xyz_123" in call_args[0][1]
+    assert result == expected_response
+
+
+# =========================================================================
+# v3 Meta API Tests - Base Members
+# =========================================================================
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_members_list_calls_correct_url(mock_requests_session):
+    """Test that base_members_list calls GET on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"members": [{"id": "usr_abc", "email": "user@example.com", "roles": "editor"}]}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.base_members_list("base123")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    assert "/api/v3/meta/bases/base123/members" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_members_list_with_params(mock_requests_session):
+    """Test that base_members_list passes query parameters correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"members": []}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    params = {"includeSystem": True}
+    client.base_members_list("base123", params=params)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["params"] == params
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_member_add_calls_correct_url(mock_requests_session):
+    """Test that base_member_add calls POST on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "usr_new", "email": "newuser@example.com", "roles": "editor"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"email": "newuser@example.com", "roles": "editor"}
+    result = client.base_member_add("base123", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v3/meta/bases/base123/members" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_member_add_with_different_roles(mock_requests_session):
+    """Test that base_member_add works with different roles."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    # Test adding a viewer
+    expected_response = {"id": "usr_viewer", "email": "viewer@example.com", "roles": "viewer"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"email": "viewer@example.com", "roles": "viewer"}
+    result = client.base_member_add("base123", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == body
+    assert result["roles"] == "viewer"
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_member_update_calls_correct_url(mock_requests_session):
+    """Test that base_member_update calls PATCH on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "usr_abc", "email": "user@example.com", "roles": "viewer"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"roles": "viewer"}
+    result = client.base_member_update("base123", "usr_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "PATCH"
+    assert "/api/v3/meta/bases/base123/members/usr_abc" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_member_update_role_change(mock_requests_session):
+    """Test that base_member_update correctly updates member role."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "usr_abc", "email": "user@example.com", "roles": "creator"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"roles": "creator"}
+    result = client.base_member_update("base123", "usr_abc", body)
+
+    assert result["roles"] == "creator"
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_member_remove_calls_correct_url(mock_requests_session):
+    """Test that base_member_remove calls DELETE on the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.base_member_remove("base123", "usr_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "DELETE"
+    assert "/api/v3/meta/bases/base123/members/usr_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_base_member_remove_with_different_ids(mock_requests_session):
+    """Test that base_member_remove works with different base and member IDs."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.base_member_remove("base_xyz", "member_123")
+
+    call_args = mock_session.request.call_args
+    assert "/api/v3/meta/bases/base_xyz/members/member_123" in call_args[0][1]
+    assert result == expected_response
+
+
+# =========================================================================
+# v3 Button Action Tests
+# =========================================================================
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_button_action_trigger_v3_calls_correct_url(mock_requests_session):
+    """Test that button_action_trigger_v3 calls the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = [{"id": 1, "fields": {"Name": "Updated"}}]
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.button_action_trigger_v3("base123", "tbl456", "col_btn", [1, 2, 3])
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v3/data/base123/tbl456/actions/col_btn" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_button_action_trigger_v3_sends_correct_body(mock_requests_session):
+    """Test that button_action_trigger_v3 sends the correct request body."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = [{"id": 1, "fields": {"Status": "Done"}}]
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    client.button_action_trigger_v3("base123", "tbl456", "col_btn", [1, 2, 3])
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == {"rowIds": [1, 2, 3], "preview": False}
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_button_action_trigger_v3_with_preview_mode(mock_requests_session):
+    """Test that button_action_trigger_v3 handles preview mode correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = [{"id": 1, "fields": {"Preview": "Result"}}]
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    client.button_action_trigger_v3("base123", "tbl456", "col_btn", [5], preview=True)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == {"rowIds": [5], "preview": True}
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_button_action_trigger_v3_with_string_ids(mock_requests_session):
+    """Test that button_action_trigger_v3 handles string row IDs correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = [{"id": "rec_abc", "fields": {"Name": "Updated"}}]
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.button_action_trigger_v3("base123", "tbl456", "col_btn", ["rec_abc", "rec_def"])
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == {"rowIds": ["rec_abc", "rec_def"], "preview": False}
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_button_action_trigger_v3_max_rows_validation(mock_requests_session):
+    """Test that button_action_trigger_v3 raises ValueError for more than 25 rows."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    # Create a list of 26 row IDs
+    row_ids = list(range(1, 27))
+
+    with pytest.raises(ValueError) as exc_info:
+        client.button_action_trigger_v3("base123", "tbl456", "col_btn", row_ids)
+
+    assert "Maximum 25 rows" in str(exc_info.value)
+    # Ensure no request was made
+    mock_session.request.assert_not_called()
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_button_action_trigger_v3_exactly_25_rows_succeeds(mock_requests_session):
+    """Test that button_action_trigger_v3 succeeds with exactly 25 rows."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = [{"id": i, "fields": {"Name": f"Record{i}"}} for i in range(1, 26)]
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    # Create a list of exactly 25 row IDs
+    row_ids = list(range(1, 26))
+    result = client.button_action_trigger_v3("base123", "tbl456", "col_btn", row_ids)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"]["rowIds"] == row_ids
+    assert len(result) == 25
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_button_action_trigger_v3_single_row(mock_requests_session):
+    """Test that button_action_trigger_v3 handles single row correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = [{"id": 42, "fields": {"Status": "Triggered"}}]
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.button_action_trigger_v3("base123", "tbl456", "col_btn", [42])
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["json"] == {"rowIds": [42], "preview": False}
+    assert result == expected_response
+
+# =========================================================================
+# v3 Attachment Upload Tests
+# =========================================================================
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_attachment_upload_v3_calls_correct_url(mock_requests_session):
+    """Test that attachment_upload_v3 calls the correct v3 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {
+        "url": "https://example.com/attachments/file.png",
+        "title": "test.png",
+        "mimetype": "image/png"
+    }
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    content = b"fake image content"
+    result = client.attachment_upload_v3(
+        "base123", "tbl456", 42, "fld_attach",
+        filename="test.png",
+        content=content,
+        content_type="image/png"
+    )
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v3/data/base123/tbl456/records/42/fields/fld_attach/upload" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_attachment_upload_v3_encodes_content_as_base64(mock_requests_session):
+    """Test that attachment_upload_v3 encodes file content as base64."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"url": "https://example.com/attachments/file.png"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    content = b"test file content"
+    expected_base64 = base64.b64encode(content).decode("utf-8")
+
+    client.attachment_upload_v3(
+        "base123", "tbl456", 1, "fld_attach",
+        filename="document.pdf",
+        content=content,
+        content_type="application/pdf"
+    )
+
+    call_args = mock_session.request.call_args
+    json_body = call_args[1]["json"]
+
+    assert json_body["file"] == expected_base64
+    assert json_body["filename"] == "document.pdf"
+    assert json_body["contentType"] == "application/pdf"
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_attachment_upload_v3_with_string_record_id(mock_requests_session):
+    """Test that attachment_upload_v3 handles string record IDs."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"url": "https://example.com/attachments/file.png"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    content = b"image data"
+    result = client.attachment_upload_v3(
+        "base123", "tbl456", "rec_abc123", "fld_attach",
+        filename="image.jpg",
+        content=content,
+        content_type="image/jpeg"
+    )
+
+    call_args = mock_session.request.call_args
+    assert "/api/v3/data/base123/tbl456/records/rec_abc123/fields/fld_attach/upload" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_attachment_upload_v3_with_binary_content(mock_requests_session):
+    """Test that attachment_upload_v3 correctly handles binary content."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"url": "https://example.com/attachments/file.zip"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    # Binary content with non-UTF8 bytes
+    content = bytes([0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD])
+    expected_base64 = base64.b64encode(content).decode("utf-8")
+
+    client.attachment_upload_v3(
+        "base123", "tbl456", 99, "fld_files",
+        filename="binary.bin",
+        content=content,
+        content_type="application/octet-stream"
+    )
+
+    call_args = mock_session.request.call_args
+    json_body = call_args[1]["json"]
+
+    assert json_body["file"] == expected_base64
+    assert json_body["contentType"] == "application/octet-stream"
+
+
+# =========================================================================
+# v2 Meta API Tests - Webhooks
+# =========================================================================
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhooks_list_calls_correct_url(mock_requests_session):
+    """Test that webhooks_list calls the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"list": [{"id": "hk_abc", "title": "My Webhook", "event": "after.insert"}]}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.webhooks_list("tbl123")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    assert "/api/v2/meta/tables/tbl123/hooks" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhooks_list_with_params(mock_requests_session):
+    """Test that webhooks_list passes query parameters correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"list": []}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    params = {"includeInactive": True}
+    client.webhooks_list("tbl123", params=params)
+
+    call_args = mock_session.request.call_args
+    assert call_args[1]["params"] == params
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhook_create_calls_correct_url(mock_requests_session):
+    """Test that webhook_create calls POST on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "hk_new", "title": "My Webhook", "event": "after.insert"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {
+        "title": "My Webhook",
+        "event": "after.insert",
+        "notification": {
+            "type": "URL",
+            "payload": {"method": "POST", "path": "https://example.com/hook"}
+        }
+    }
+    result = client.webhook_create("tbl123", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v2/meta/tables/tbl123/hooks" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhook_read_calls_correct_url(mock_requests_session):
+    """Test that webhook_read calls GET on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "hk_abc", "title": "My Webhook", "event": "after.insert"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.webhook_read("hk_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "GET"
+    assert "/api/v2/meta/hooks/hk_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhook_update_calls_correct_url(mock_requests_session):
+    """Test that webhook_update calls PATCH on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"id": "hk_abc", "title": "Renamed Webhook", "active": False}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"title": "Renamed Webhook", "active": False}
+    result = client.webhook_update("hk_abc", body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "PATCH"
+    assert "/api/v2/meta/hooks/hk_abc" in call_args[0][1]
+    assert call_args[1]["json"] == body
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhook_delete_calls_correct_url(mock_requests_session):
+    """Test that webhook_delete calls DELETE on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.webhook_delete("hk_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "DELETE"
+    assert "/api/v2/meta/hooks/hk_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhook_test_calls_correct_url(mock_requests_session):
+    """Test that webhook_test calls POST on the correct v2 API endpoint."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True, "message": "Webhook test successful"}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    result = client.webhook_test("hk_abc")
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v2/meta/hooks/test/hk_abc" in call_args[0][1]
+    assert result == expected_response
+
+
+@mock.patch.object(requests_lib, "Session")
+def test_webhook_test_with_payload(mock_requests_session):
+    """Test that webhook_test passes optional payload correctly."""
+    mock_session = mock.Mock()
+    mock_requests_session.return_value = mock_session
+
+    expected_response = {"success": True}
+    mock_session.request.return_value = _create_mock_response(200, expected_response)
+
+    token = APIToken("test-token")
+    client = NocoDBRequestsClient(token, "https://app.nocodb.com")
+
+    body = {"sampleData": {"Name": "Test Record", "Status": "active"}}
+    result = client.webhook_test("hk_abc", body=body)
+
+    call_args = mock_session.request.call_args
+    assert call_args[0][0] == "POST"
+    assert "/api/v2/meta/hooks/test/hk_abc" in call_args[0][1]
+    assert call_args[1]["json"] == body
     assert result == expected_response

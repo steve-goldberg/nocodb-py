@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Python client for NocoDB API - **Self-hosted community edition only**.
 
+**Status:** v3.0.0 - Feature complete (37/37 features, 138 tests)
+
 This client uses a hybrid v2/v3 API approach based on what's available in self-hosted NocoDB:
-- **v3 Data API** - All record operations (CRUD, links, attachments)
-- **v3 Meta API** - Tables, fields, single base operations
+- **v3 Data API** - Records CRUD, links, attachments, button actions
+- **v3 Meta API** - Tables, fields, base CRUD, base members
 - **v2 Meta API** - List bases, views, view filters/sorts, webhooks
 
 Use `/nocodbv3` skill for NocoDB API documentation when implementing features.
@@ -20,10 +22,13 @@ Use `/nocodbv3` skill for NocoDB API documentation when implementing features.
 | Records CRUD | v3 | `/api/v3/data/{baseId}/{tableId}/records` |
 | Linked Records | v3 | `/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}` |
 | Attachments | v3 | `/api/v3/data/{baseId}/{tableId}/records/{recordId}/fields/{fieldId}/upload` |
+| Button Actions | v3 | `/api/v3/data/{baseId}/{tableId}/actions/{columnId}` |
 | List Bases | v2 | `/api/v2/meta/bases` |
 | Get/Update/Delete Base | v3 | `/api/v3/meta/bases/{baseId}` |
+| Base Members | v3 | `/api/v3/meta/bases/{baseId}/members` |
 | Tables CRUD | v3 | `/api/v3/meta/bases/{baseId}/tables` |
 | Fields CRUD | v3 | `/api/v3/meta/bases/{baseId}/tables/{tableId}/fields` |
+| Field Read | v3 | `/api/v3/meta/bases/{baseId}/fields/{fieldId}` |
 | Views CRUD | v2 | `/api/v2/meta/tables/{tableId}/views` |
 | View Filters | v2 | `/api/v2/meta/views/{viewId}/filters` |
 | View Sorts | v2 | `/api/v2/meta/views/{viewId}/sorts` |
@@ -90,10 +95,10 @@ nocodb-api-v3-client/
   - Deprecated v1 methods: `get_table_uri()`, `get_row_detail_uri()` (emit warnings)
 
 - `nocodb/infra/requests_client.py` - HTTP client implementation (`NocoDBRequestsClient`)
-  - v3 Data methods: `records_list_v3()`, `record_get_v3()`, `records_create_v3()`, etc.
-  - v3 Meta methods: `tables_list_v3()`, `table_get_v3()`, `fields_list_v3()`, etc.
-  - v2 Meta methods: `bases_list_v3()`, `views_list()`, `webhooks_list()`, etc.
-  - Legacy v1 methods: `table_row_list()`, `table_row_create()`, etc.
+  - v3 Data methods: `records_list_v3()`, `record_get_v3()`, `records_create_v3()`, `attachment_upload_v3()`, `button_action_trigger_v3()`, etc.
+  - v3 Meta methods: `tables_list_v3()`, `table_get_v3()`, `fields_list_v3()`, `field_read_v3()`, `base_members_list()`, etc.
+  - v2 Meta methods: `bases_list_v3()`, `views_list()`, `view_filters_list()`, `view_sorts_list()`, `webhooks_list()`, etc.
+  - Legacy v1 methods: `table_row_list()`, `table_row_create()`, etc. (deprecated)
 
 - `nocodb/filters/` - Query filter system
   - `__init__.py` - Filter classes: `EqFilter`, `LikeFilter`, `IsFilter`, `InFilter`, `BetweenFilter`

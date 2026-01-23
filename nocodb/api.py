@@ -119,6 +119,46 @@ class NocoDBAPI:
             "/".join((base_id, table_id, "links", link_field_id, str(record_id)))
         )
 
+    def get_button_action_uri(self, base_id: str, table_id: str, column_id: str) -> str:
+        """Get the URI for triggering button actions.
+
+        v3 endpoint: POST /api/v3/data/{baseId}/{tableId}/actions/{columnId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            column_id: The button column ID
+
+        Returns:
+            The URI for button action trigger
+        """
+        return urljoin(self.__base_data_uri, "/".join((base_id, table_id, "actions", column_id)))
+
+    def get_attachment_upload_uri(
+        self,
+        base_id: str,
+        table_id: str,
+        record_id: str,
+        field_id: str
+    ) -> str:
+        """Get the URI for uploading attachments to a record field.
+
+        v3 endpoint: POST /api/v3/data/{baseId}/{tableId}/records/{recordId}/fields/{fieldId}/upload
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            record_id: The record ID
+            field_id: The attachment field ID
+
+        Returns:
+            The URI for attachment upload
+        """
+        return urljoin(
+            self.__base_data_uri,
+            "/".join((base_id, table_id, "records", str(record_id), "fields", field_id, "upload"))
+        )
+
     # =========================================================================
     # v3 Meta API URI Methods - Workspaces & Bases
     # =========================================================================
@@ -222,6 +262,111 @@ class NocoDBAPI:
             The URI for single view operations
         """
         return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id)))
+
+    def get_view_sorts_uri(self, view_id: str) -> str:
+        """Get the URI for listing/creating view sorts using v2 API.
+
+        v2 endpoint: GET/POST /api/v2/meta/views/{viewId}/sorts
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for view sorts list/create operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id, "sorts")))
+
+    def get_sort_uri(self, sort_id: str) -> str:
+        """Get the URI for single sort operations using v2 API.
+
+        v2 endpoint: PATCH/DELETE /api/v2/meta/sorts/{sortId}
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            sort_id: The sort ID
+
+        Returns:
+            The URI for single sort operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("sorts", sort_id)))
+
+    def get_view_filters_uri(self, view_id: str) -> str:
+        """Get the URI for view filters operations using v2 API.
+
+        v2 endpoint: GET/POST /api/v2/meta/views/{viewId}/filters
+
+        Note: v3 View Filters API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for view filters list/create operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id, "filters")))
+
+    def get_filter_uri(self, filter_id: str) -> str:
+        """Get the URI for single filter operations using v2 API.
+
+        v2 endpoint: PATCH/DELETE /api/v2/meta/filters/{filterId}
+
+        Note: v3 View Filters API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            filter_id: The filter ID
+
+        Returns:
+            The URI for single filter operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("filters", filter_id)))
+
+    def get_webhooks_uri(self, table_id: str) -> str:
+        """Get the URI for listing/creating webhooks using v2 API.
+
+        v2 endpoint: GET/POST /api/v2/meta/tables/{tableId}/hooks
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Args:
+            table_id: The table ID
+
+        Returns:
+            The URI for webhooks list/create operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("tables", table_id, "hooks")))
+
+    def get_webhook_uri(self, hook_id: str) -> str:
+        """Get the URI for single webhook operations using v2 API.
+
+        v2 endpoint: GET/PATCH/DELETE /api/v2/meta/hooks/{hookId}
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Args:
+            hook_id: The webhook (hook) ID
+
+        Returns:
+            The URI for single webhook operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("hooks", hook_id)))
+
+    def get_webhook_test_uri(self, hook_id: str) -> str:
+        """Get the URI for testing a webhook using v2 API.
+
+        v2 endpoint: POST /api/v2/meta/hooks/test/{hookId}
+
+        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
+
+        Args:
+            hook_id: The webhook (hook) ID
+
+        Returns:
+            The URI for webhook test operation
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("hooks", "test", hook_id)))
 
     # =========================================================================
     # v3 Meta API URI Methods - Tables
@@ -343,6 +488,37 @@ class NocoDBAPI:
             The URI for single API token operations
         """
         return urljoin(self.__base_meta_uri, "/".join(("tokens", token_id)))
+
+    # =========================================================================
+    # v3 Meta API URI Methods - Base Members
+    # =========================================================================
+
+    def get_base_members_uri(self, base_id: str) -> str:
+        """Get the URI for listing/adding base members.
+
+        v3 endpoint: GET/POST /api/v3/meta/bases/{baseId}/members
+
+        Args:
+            base_id: The base (project) ID
+
+        Returns:
+            The URI for base members list/create operations
+        """
+        return urljoin(self.__base_meta_uri, "/".join(("bases", base_id, "members")))
+
+    def get_base_member_uri(self, base_id: str, member_id: str) -> str:
+        """Get the URI for single base member operations.
+
+        v3 endpoint: PATCH/DELETE /api/v3/meta/bases/{baseId}/members/{memberId}
+
+        Args:
+            base_id: The base (project) ID
+            member_id: The member ID
+
+        Returns:
+            The URI for single base member operations
+        """
+        return urljoin(self.__base_meta_uri, "/".join(("bases", base_id, "members", member_id)))
 
     # =========================================================================
     # Deprecated v1 API Methods - Backwards Compatibility
