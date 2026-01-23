@@ -61,7 +61,14 @@ def list_links(
             base_id, table_id, link_field_id, record_id, params=params
         )
 
+        # Handle different response formats based on relationship type:
+        # - hm (has many): {"records": [...]} or {"list": [...]}
+        # - bt (belongs to): {"record": {...}} (singular)
         records = result.get("list", result.get("records", []))
+        if not records:
+            record = result.get("record")
+            if record:
+                records = [record]
 
         if output_json:
             print_json(result, meta={"page": page, "pageSize": page_size})

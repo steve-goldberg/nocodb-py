@@ -512,8 +512,10 @@ class NocoDBRequestsClient(NocoDBClient):
                 - pageSize: Number of records per page
 
         Returns:
-            Dict with 'list' array of linked records and optional 'next' pagination URL
-            Example: {"list": [{"id": 1, "fields": {...}}], "next": "url"}
+            Dict with linked records. Format varies by relationship type:
+            - hm (has many): {"list": [...]} or {"records": [...]}
+            - bt (belongs to): {"record": {...}} (singular)
+            May include optional 'next' pagination URL for hm relationships.
         """
         url = self.__api_info.get_linked_records_uri(base_id, table_id, link_field_id, str(record_id))
         return self._request("GET", url, params=params).json()
