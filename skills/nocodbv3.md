@@ -126,6 +126,47 @@ nocodb members update MEMBER_ID --role viewer
 nocodb members remove MEMBER_ID
 ```
 
+### Export
+```bash
+nocodb export VIEW_ID                       # Print CSV to stdout
+nocodb export VIEW_ID -o data.csv           # Save to file
+nocodb export VIEW_ID --limit 100           # First 100 rows
+nocodb export VIEW_ID --offset 50 --limit 50  # Rows 51-100
+```
+
+### Storage
+```bash
+nocodb storage upload ./document.pdf        # Upload file
+nocodb storage upload ./image.png --content-type image/png
+nocodb storage upload ./data.json --json    # JSON output
+```
+
+### View Columns
+```bash
+nocodb views columns list VIEW_ID           # List column visibility
+nocodb views columns hide-all VIEW_ID       # Hide all columns
+nocodb views columns show-all VIEW_ID       # Show all columns
+nocodb views columns update VIEW_ID COL_ID --show --order 1
+```
+
+### Shared Views
+```bash
+nocodb views share list -t TABLE_ID         # List shared views
+nocodb views share create VIEW_ID           # Create public link
+nocodb views share create VIEW_ID --password secret123
+nocodb views share update VIEW_ID --password newpass
+nocodb views share delete VIEW_ID           # Remove public link
+```
+
+### Webhook Extras
+```bash
+nocodb webhooks logs HOOK_ID                # View webhook logs
+nocodb webhooks sample -t TABLE_ID          # Get sample payload
+nocodb webhooks sample -t TABLE_ID --event records --operation insert --version v2
+nocodb webhooks filters list HOOK_ID        # List hook filters
+nocodb webhooks filters create HOOK_ID --column FIELD_ID --op eq --value "test"
+```
+
 ## Field Types
 
 | Type | Description | Options Example |
@@ -258,9 +299,15 @@ nocodb records list BASE TABLE --json | jq '.records[].id'
 | Attachments | upload | ✅ |
 | Members | full CRUD | ✅ |
 | Views | list, update, delete | Cannot create or get single view |
+| View Columns | full CRUD | ✅ show/hide per view |
+| Shared Views | full CRUD | ✅ public links with password |
 | View Filters | full CRUD | ✅ |
 | View Sorts | full CRUD | ✅ |
+| Export CSV | export | ✅ async job-based |
+| Storage | upload | ✅ general file uploads |
 | Webhooks | list, delete | Cannot create/get/update/test |
+| Webhook Logs | read | ✅ view execution logs |
+| Webhook Filters | list, create | ✅ conditional triggers |
 
 Use NocoDB web UI to create views and webhooks, then manage via CLI.
 

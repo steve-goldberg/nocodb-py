@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Python client for NocoDB API - **Self-hosted community edition only**.
 
-**Status:** v3.0.0 - Feature complete (46/47 features, 130 tests)
+**Status:** v3.0.0 - Feature complete (Phase 2 done, 123 tests)
 
 This client uses a hybrid v2/v3 API approach based on what's available in self-hosted NocoDB:
 - **v3 Data API** - Records CRUD, links, attachments, button actions
@@ -33,7 +33,16 @@ Use `/nocodbv3` skill for NocoDB API documentation when implementing features.
 | Views (list/update/delete) | v2 | `/api/v2/meta/tables/{tableId}/views` |
 | View Filters | v2 | `/api/v2/meta/views/{viewId}/filters` |
 | View Sorts | v2 | `/api/v2/meta/views/{viewId}/sorts` |
+| Filter/Sort Get | v2 | `/api/v2/meta/filters/{filterId}`, `/api/v2/meta/sorts/{sortId}` |
+| View Columns | v2 | `/api/v2/meta/views/{viewId}/columns` |
+| Shared Views | v2 | `/api/v2/meta/views/{viewId}/share` |
+| Export CSV | v2 | `/api/v2/export/{viewId}/csv` |
+| Job Status | v2 | `/api/v2/jobs/{baseId}` |
+| Storage Upload | v2 | `/api/v2/storage/upload` |
 | Webhooks (list/delete) | v2 | `/api/v2/meta/tables/{tableId}/hooks` |
+| Webhook Logs | v2 | `/api/v2/meta/hooks/{hookId}/logs` |
+| Webhook Filters | v2 | `/api/v2/meta/hooks/{hookId}/filters` |
+| Webhook Sample | v2 | `/api/v2/meta/tables/{tableId}/hooks/samplePayload/{event}/{op}/{ver}` |
 
 ## Commands
 
@@ -74,7 +83,18 @@ nocodb-api-v3-client/
 │   │   ├── client.py         # Client factory for CLI
 │   │   ├── formatters.py     # Rich table/JSON output formatters
 │   │   ├── skill.md          # Agent-readable CLI documentation
-│   │   └── commands/         # Command modules (records, bases, tables, fields, links, views, webhooks)
+│   │   └── commands/         # 11 command modules:
+│   │       ├── records.py    # Records CRUD + batch operations
+│   │       ├── bases.py      # Bases CRUD
+│   │       ├── tables.py     # Tables CRUD
+│   │       ├── fields.py     # Fields CRUD
+│   │       ├── links.py      # Linked records
+│   │       ├── views.py      # Views + columns/share/filters/sorts
+│   │       ├── webhooks.py   # Webhooks + logs/filters/sample
+│   │       ├── attachments.py # File attachments to records
+│   │       ├── members.py    # Base member management
+│   │       ├── export.py     # CSV export (Phase 2)
+│   │       └── storage.py    # Storage upload (Phase 2)
 │   ├── filters/
 │   │   ├── __init__.py       # Filter exports (EqFilter, IsFilter, InFilter, BetweenFilter, etc.)
 │   │   ├── factory.py        # basic_filter_class_factory()
@@ -111,14 +131,18 @@ nocodb-api-v3-client/
   - v2 methods: `get_bases_uri()`, `get_views_uri()`, `get_webhooks_uri()`, etc.
 
 - `nocodb/infra/requests_client.py` - HTTP client implementation (`NocoDBRequestsClient`)
-  - v3 Data methods: `records_list_v3()`, `record_get_v3()`, `records_create_v3()`, `attachment_upload_v3()`, `button_action_trigger_v3()`, etc.
+  - v3 Data methods: `records_list_v3()`, `record_get_v3()`, `records_create_v3()`, `attachment_upload_v3()`, etc.
   - v3 Meta methods: `tables_list_v3()`, `table_get_v3()`, `fields_list_v3()`, `field_read_v3()`, `base_members_list()`, etc.
   - v2 Meta methods: `bases_list_v3()`, `views_list()`, `view_filters_list()`, `view_sorts_list()`, `webhooks_list()`, etc.
+  - v2 Export/Storage: `export_view()`, `storage_upload()`
+  - v2 View Columns: `view_columns_list()`, `view_column_update()`, `view_columns_hide_all()`, `view_columns_show_all()`
+  - v2 Shared Views: `shared_views_list()`, `shared_view_create()`, `shared_view_update()`, `shared_view_delete()`
+  - v2 Webhook extras: `webhook_logs()`, `webhook_sample_payload()`, `webhook_filters_list()`, `webhook_filter_create()`
 
 - `nocodb/cli/` - Command-line interface (Typer + Rich)
   - `main.py` - App entry point with global options (--url, --token, --json)
   - `config.py` - Config file loading (~/.nocodb.toml), env vars (NOCODB_URL, NOCODB_TOKEN)
-  - `commands/` - Subcommands: records, bases, tables, fields, links, views, webhooks
+  - `commands/` - 11 modules: records, bases, tables, fields, links, views, webhooks, attachments, members, export, storage
 
 - `nocodb/filters/` - Query filter system
   - `__init__.py` - Filter classes: `EqFilter`, `LikeFilter`, `IsFilter`, `InFilter`, `BetweenFilter`

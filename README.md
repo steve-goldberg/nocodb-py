@@ -9,23 +9,31 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 - Full v3 Data API (records, links, attachments)
 - v3 Meta API (bases, tables, fields, base members)
 - v2 Meta API (list bases, views, filters, sorts, webhooks)
+- Export views to CSV with pagination support
+- Storage file uploads (general purpose)
+- View column visibility management
+- Public share links for views
+- Webhook logs and conditional filters
 - Query filters with logical operators
 - Batch operations for records
 - Pagination helpers
-- Full CLI with Typer/Rich
-- 130 tests, fully typed
+- Full CLI with Typer/Rich (11 command modules)
+- 123 tests, fully typed
 
 ## Project Status
 
-**Version 3.0.0** - Feature complete
+**Version 3.0.0** - Feature complete (Phase 2 done)
 
 | Category | Status |
 |----------|--------|
 | Data API (v3) | 11 of 11 |
 | Meta API | 17 of 17 |
+| Export/Storage | 2 of 2 |
+| View Management | 4 of 4 |
+| Webhook Extras | 3 of 3 |
 | Filters/Utils | 9 of 9 |
-| CLI | 9 of 9 |
-| **Total** | **46 of 47 (98%)** |
+| CLI | 11 modules |
+| **Total** | **Complete** |
 
 ## API Version Summary
 
@@ -35,15 +43,20 @@ This client uses a hybrid v2/v3 approach based on self-hosted NocoDB availabilit
 |---------|-----|-------|
 | Records CRUD | v3 | Full support |
 | Linked Records | v3 | Link/unlink operations |
-| Attachments | v3 | File uploads |
+| Attachments | v3 | File uploads to records |
 | List Bases | v2 | v3 requires Enterprise |
 | Base CRUD | v3 | Get/update/delete |
 | Base Members | v3 | List/add/update/remove |
 | Tables CRUD | v3 | Full support |
 | Fields CRUD | v3 | Full support |
 | Views (list/update/delete) | v2 | v3 requires Enterprise, create/get broken |
+| View Columns | v2 | Show/hide columns per view |
+| Shared Views | v2 | Public share links with optional password |
 | View Filters/Sorts | v2 | v3 requires Enterprise |
+| Export CSV | v2 | Async job-based export |
+| Storage Upload | v2 | General file uploads |
 | Webhooks (list/delete) | v2 | create/get/update/test broken in self-hosted |
+| Webhook Logs/Filters | v2 | View logs, manage conditional triggers |
 
 ## Installation
 
@@ -424,6 +437,35 @@ nocodb views list TABLE_ID
 nocodb views filters list VIEW_ID
 nocodb views sorts list VIEW_ID
 
+# View column visibility
+nocodb views columns list VIEW_ID
+nocodb views columns hide-all VIEW_ID
+nocodb views columns show-all VIEW_ID
+nocodb views columns update VIEW_ID COLUMN_ID --show --order 1
+
+# Shared views (public links)
+nocodb views share create VIEW_ID --password secret123
+nocodb views share list TABLE_ID
+nocodb views share delete VIEW_ID
+
+# Export view data to CSV
+nocodb export VIEW_ID                      # Print to stdout
+nocodb export VIEW_ID -o data.csv          # Save to file
+nocodb export VIEW_ID --limit 100          # First 100 rows
+
+# Storage uploads (general purpose)
+nocodb storage upload ./document.pdf
+nocodb storage upload ./image.png --content-type image/png
+
+# Attachments (attach to record field)
+nocodb attachments upload -t TABLE_ID -r RECORD_ID -f FIELD_ID ./photo.jpg
+
+# Webhook logs and filters
+nocodb webhooks logs HOOK_ID
+nocodb webhooks sample -t TABLE_ID --event records --operation insert
+nocodb webhooks filters list HOOK_ID
+nocodb webhooks filters create HOOK_ID --column FIELD_ID --op eq --value "test"
+
 # JSON output (pipe to jq)
 nocodb records list BASE_ID TABLE_ID --json | jq '.records[].fields.Name'
 ```
@@ -440,13 +482,13 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 
 ## Recent Changes
 
+- feat(api): add Phase 2 SDK methods - export, storage, view columns, shared views, webhook extras
+- fix(api): fix export job polling and storage upload content handling
+- fix(cli): handle bt relationship response in links list
+- fix(cli): remove tokens and buttons - Enterprise-only features
+- docs: add attachments, members commands to skill documentation
 - chore: remove local dev files from git history (tests/, features.json, etc.)
 - docs: add CONTRIBUTING.md with PR guidelines and GitHub templates
-- fix(api): remove v2 operations that don't work in self-hosted (webhooks create/get/update/test, views create/get)
-- fix(cli): stop double-wrapping record ID in delete command
-- fix(docs): update API docs to match actual v3 response format
-- feat(cli): add full CLI for managing NocoDB from the terminal
-- fix(api): correct v3 response handling and field retrieval
 
 ## License
 
