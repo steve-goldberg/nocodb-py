@@ -392,6 +392,43 @@ class NocoDBRequestsClient(NocoDBClient):
         url = self.__api_info.get_records_count_uri(base_id, table_id)
         return self._request("GET", url, params=params).json()
 
+    def records_list_all_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+        max_pages: Optional[int] = None,
+    ) -> List[Dict[str, Any]]:
+        """List ALL records from a table, automatically handling pagination.
+
+        This method fetches all pages of records from a table, following the
+        'next' URL returned by the v3 API until no more pages are available.
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            params: Optional query parameters (pageSize, where, sort, etc.)
+            max_pages: Optional limit on pages to fetch (None = unlimited)
+
+        Returns:
+            List of all records (may be large!)
+            Each record has 'id' and 'fields' keys.
+
+        Example:
+            all_users = client.records_list_all_v3(base_id, table_id, params={
+                "pageSize": 100,
+                "where": "(Status,eq,Active)"
+            })
+        """
+        from ..utils import collect_all_v3
+
+        def fetch(p: Dict[str, Any]) -> Dict[str, Any]:
+            merged_params = dict(params or {})
+            merged_params.update(p)
+            return self.records_list_v3(base_id, table_id, params=merged_params)
+
+        return collect_all_v3(fetch, params, max_pages)
+
     def linked_records_list_v3(
         self,
         base_id: str,

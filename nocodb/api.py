@@ -222,6 +222,37 @@ class NocoDBAPI:
         return urljoin(self.__base_meta_uri, "/".join(("bases", base_id, "fields", field_id)))
 
     # =========================================================================
+    # v3 Meta API URI Methods - Scripts
+    # =========================================================================
+
+    def get_scripts_uri(self, base_id: str) -> str:
+        """Get the URI for scripts list/create operations.
+
+        v3 endpoint: GET/POST /api/v3/meta/bases/{baseId}/scripts
+
+        Args:
+            base_id: The base (project) ID
+
+        Returns:
+            The URI for scripts list/create operations
+        """
+        return urljoin(self.__base_meta_uri, "/".join(("bases", base_id, "scripts")))
+
+    def get_script_uri(self, base_id: str, script_id: str) -> str:
+        """Get the URI for single script operations.
+
+        v3 endpoint: GET/PATCH/DELETE /api/v3/meta/bases/{baseId}/scripts/{scriptId}
+
+        Args:
+            base_id: The base (project) ID
+            script_id: The script ID
+
+        Returns:
+            The URI for single script operations
+        """
+        return urljoin(self.__base_meta_uri, "/".join(("bases", base_id, "scripts", script_id)))
+
+    # =========================================================================
     # Deprecated v1 API Methods - Backwards Compatibility
     # =========================================================================
 

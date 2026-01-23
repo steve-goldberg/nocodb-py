@@ -463,3 +463,104 @@ class NocoDBClient:
             Dict with 'tables' array
         """
         pass
+
+    # =========================================================================
+    # v3 Meta API Methods - Scripts
+    # =========================================================================
+
+    @abstractmethod
+    def scripts_list_v3(
+        self,
+        base_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List scripts in a base.
+
+        GET /api/v3/meta/bases/{baseId}/scripts
+
+        Args:
+            base_id: The base (project) ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with scripts array
+        """
+        pass
+
+    @abstractmethod
+    def script_create_v3(
+        self,
+        base_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new script.
+
+        POST /api/v3/meta/bases/{baseId}/scripts
+
+        Args:
+            base_id: The base (project) ID
+            body: Script configuration (title, script content, etc.)
+
+        Returns:
+            Created script object
+        """
+        pass
+
+    @abstractmethod
+    def script_read_v3(
+        self,
+        base_id: str,
+        script_id: str,
+    ) -> Dict[str, Any]:
+        """Read a single script.
+
+        GET /api/v3/meta/bases/{baseId}/scripts/{scriptId}
+
+        Args:
+            base_id: The base (project) ID
+            script_id: The script ID
+
+        Returns:
+            Script object with details
+        """
+        pass
+
+    @abstractmethod
+    def script_update_v3(
+        self,
+        base_id: str,
+        script_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a script.
+
+        PATCH /api/v3/meta/bases/{baseId}/scripts/{scriptId}
+
+        Args:
+            base_id: The base (project) ID
+            script_id: The script ID
+            body: Fields to update
+
+        Returns:
+            Updated script object
+        """
+        pass
+
+    @abstractmethod
+    def script_delete_v3(
+        self,
+        base_id: str,
+        script_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a script.
+
+        DELETE /api/v3/meta/bases/{baseId}/scripts/{scriptId}
+
+        Args:
+            base_id: The base (project) ID
+            script_id: The script ID
+
+        Returns:
+            Deletion confirmation
+        """
+        pass
