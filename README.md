@@ -15,7 +15,7 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 - Public share links for views
 - Webhook logs and conditional filters
 - Query filters with logical operators
-- Batch operations for records
+- Batch operations for records and fields
 - Pagination helpers
 - Full CLI with Typer/Rich (11 command modules)
 - 123 tests, fully typed
@@ -426,6 +426,8 @@ nocodb records list BASE_ID TABLE_ID --filter "(Status,eq,Active)" --sort "-Crea
 nocodb bases list
 nocodb tables list BASE_ID
 nocodb fields list BASE_ID TABLE_ID
+nocodb fields create BASE_ID TABLE_ID --file schema.json  # Batch create from JSON
+nocodb fields delete --ids "fld_xxx,fld_yyy"              # Batch delete
 
 # Linked records
 nocodb links list BASE_ID TABLE_ID LINK_FIELD_ID RECORD_ID
@@ -482,13 +484,13 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 
 ## Recent Changes
 
+- feat(cli): add batch create and delete for fields (`--file`, `--ids`)
+- fix(docs): SingleSelect colors require HEX codes (`#27ae60`), not named colors
+- fix(cli): better error messages for field creation failures
 - feat(api): add Phase 2 SDK methods - export, storage, view columns, shared views, webhook extras
 - fix(api): fix export job polling and storage upload content handling
 - fix(cli): handle bt relationship response in links list
 - fix(cli): remove tokens and buttons - Enterprise-only features
-- docs: add attachments, members commands to skill documentation
-- chore: remove local dev files from git history (tests/, features.json, etc.)
-- docs: add CONTRIBUTING.md with PR guidelines and GitHub templates
 
 ## License
 

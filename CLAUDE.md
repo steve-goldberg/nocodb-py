@@ -87,7 +87,7 @@ nocodb-api-v3-client/
 │   │       ├── records.py    # Records CRUD + batch operations
 │   │       ├── bases.py      # Bases CRUD
 │   │       ├── tables.py     # Tables CRUD
-│   │       ├── fields.py     # Fields CRUD
+│   │       ├── fields.py     # Fields CRUD + batch create/delete
 │   │       ├── links.py      # Linked records
 │   │       ├── views.py      # Views + columns/share/filters/sorts
 │   │       ├── webhooks.py   # Webhooks + logs/filters/sample
@@ -183,3 +183,11 @@ Tests are colocated with source files using `*_test.py` pattern:
 
 - `requests>=2.0` - HTTP client
 - `pytest` - Testing (dev)
+
+## CLI Troubleshooting
+
+### Field Creation
+
+- **SingleSelect/MultiSelect colors**: Use HEX codes (`#27ae60`), not named colors (`green`)
+- **Links fields**: Use `--file` instead of `--options` to avoid shell escaping issues with nested JSON
+- **Batch operations**: `fields create --file schema.json` and `fields delete --ids "fld_xxx,fld_yyy"`
