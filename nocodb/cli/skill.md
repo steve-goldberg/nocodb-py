@@ -109,9 +109,28 @@ nocodb fields get FIELD_ID [--json]
 nocodb fields create -t TABLE_ID --title "Email" --type Email [--json]
 nocodb fields update FIELD_ID --title "New Name" [--json]
 nocodb fields delete FIELD_ID [-f]
+
+# Batch create fields from JSON file
+nocodb fields create -t TABLE_ID --file schema.json [--json]
+
+# Batch delete fields
+nocodb fields delete --ids "fld_xxx,fld_yyy,fld_zzz" [-f] [--json]
 ```
 
 **Field Types:** SingleLineText, LongText, Number, Decimal, Currency, Percent, Email, URL, PhoneNumber, Date, DateTime, Time, Duration, Checkbox, SingleSelect, MultiSelect, Rating, Attachment, Links, Lookup, Rollup, Formula, CreatedTime, LastModifiedTime, CreatedBy, LastModifiedBy
+
+### Batch Fields Create File Format
+
+```json
+[
+  {"title": "Email", "type": "Email"},
+  {"title": "Status", "type": "SingleSelect", "options": {"choices": [
+    {"title": "Active", "color": "green"},
+    {"title": "Inactive", "color": "red"}
+  ]}},
+  {"title": "Notes", "type": "LongText"}
+]
+```
 
 ## Linked Records
 
@@ -336,11 +355,31 @@ nocodb links link -t projects -l team_link_field -r PROJECT_ID --targets "TEAM_I
 nocodb records list -t tasks --filter "(Status,eq,Active)~and(Priority,gte,8)" --json > tasks.json
 ```
 
-### Batch operations via scripting
+### Batch Operations (Native API Support)
 
 ```bash
-# Delete multiple records
-for id in 1 2 3 4 5; do
-  nocodb records delete -t TABLE_ID $id -f --json
-done
+# Batch create records from JSON file
+nocodb records create -t TABLE_ID --file records.json [--json]
+
+# Batch update records from JSON file
+nocodb records update -t TABLE_ID --file updates.json [--json]
+
+# Batch delete records by IDs
+nocodb records delete -t TABLE_ID --ids "1,2,3,4,5" [-f] [--json]
+
+# Batch create fields from JSON file
+nocodb fields create -t TABLE_ID --file schema.json [--json]
+
+# Batch delete fields by IDs
+nocodb fields delete --ids "fld_xxx,fld_yyy" [-f] [--json]
+```
+
+**Records batch file format (create):**
+```json
+[{"Name": "John", "Email": "john@test.com"}, {"Name": "Jane", "Email": "jane@test.com"}]
+```
+
+**Records batch file format (update):**
+```json
+[{"id": 1, "fields": {"Status": "Done"}}, {"id": 2, "fields": {"Status": "Active"}}]
 ```
