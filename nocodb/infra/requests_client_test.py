@@ -106,8 +106,9 @@ def test_records_create_v3_single_record(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = [{"id": 1, "fields": {"Name": "New"}}]
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    # v3 API returns {"records": [...]} wrapper
+    records_data = [{"id": 1, "fields": {"Name": "New"}}]
+    mock_session.request.return_value = _create_mock_response(200, {"records": records_data})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -120,7 +121,8 @@ def test_records_create_v3_single_record(mock_requests_session):
     assert "/api/v3/data/base123/tbl456/records" in call_args[0][1]
     # Single record should be wrapped in array
     assert call_args[1]["json"] == [record]
-    assert result == expected_response
+    # SDK extracts records array from wrapper
+    assert result == records_data
 
 
 @mock.patch.object(requests_lib, "Session")
@@ -129,11 +131,12 @@ def test_records_create_v3_multiple_records(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = [
+    # v3 API returns {"records": [...]} wrapper
+    records_data = [
         {"id": 1, "fields": {"Name": "First"}},
         {"id": 2, "fields": {"Name": "Second"}}
     ]
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    mock_session.request.return_value = _create_mock_response(200, {"records": records_data})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -146,7 +149,8 @@ def test_records_create_v3_multiple_records(mock_requests_session):
 
     call_args = mock_session.request.call_args
     assert call_args[1]["json"] == records
-    assert result == expected_response
+    # SDK extracts records array from wrapper
+    assert result == records_data
 
 
 @mock.patch.object(requests_lib, "Session")
@@ -155,8 +159,9 @@ def test_records_update_v3(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = [{"id": 1, "fields": {"Name": "Updated"}}]
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    # v3 API returns {"records": [...]} wrapper
+    records_data = [{"id": 1, "fields": {"Name": "Updated"}}]
+    mock_session.request.return_value = _create_mock_response(200, {"records": records_data})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -168,7 +173,8 @@ def test_records_update_v3(mock_requests_session):
     assert call_args[0][0] == "PATCH"
     assert "/api/v3/data/base123/tbl456/records" in call_args[0][1]
     assert call_args[1]["json"] == [record]
-    assert result == expected_response
+    # SDK extracts records array from wrapper
+    assert result == records_data
 
 
 @mock.patch.object(requests_lib, "Session")
@@ -177,8 +183,9 @@ def test_records_delete_v3_single_id(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = [{"id": 1}]
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    # v3 API returns {"records": [...]} wrapper
+    records_data = [{"id": 1}]
+    mock_session.request.return_value = _create_mock_response(200, {"records": records_data})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -189,7 +196,8 @@ def test_records_delete_v3_single_id(mock_requests_session):
     assert call_args[0][0] == "DELETE"
     assert "/api/v3/data/base123/tbl456/records" in call_args[0][1]
     assert call_args[1]["json"] == [{"id": 1}]
-    assert result == expected_response
+    # SDK extracts records array from wrapper
+    assert result == records_data
 
 
 @mock.patch.object(requests_lib, "Session")
@@ -198,8 +206,9 @@ def test_records_delete_v3_multiple_ids(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = [{"id": 1}, {"id": 2}, {"id": 3}]
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    # v3 API returns {"records": [...]} wrapper
+    records_data = [{"id": 1}, {"id": 2}, {"id": 3}]
+    mock_session.request.return_value = _create_mock_response(200, {"records": records_data})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -208,7 +217,8 @@ def test_records_delete_v3_multiple_ids(mock_requests_session):
 
     call_args = mock_session.request.call_args
     assert call_args[1]["json"] == [{"id": 1}, {"id": 2}, {"id": 3}]
-    assert result == expected_response
+    # SDK extracts records array from wrapper
+    assert result == records_data
 
 
 @mock.patch.object(requests_lib, "Session")
@@ -723,12 +733,13 @@ def test_records_list_v3_with_v3_logical_operators(mock_requests_session):
 
 @mock.patch.object(requests_lib, "Session")
 def test_fields_list_v3_calls_correct_url(mock_requests_session):
-    """Test that fields_list_v3 calls the correct v3 API endpoint."""
+    """Test that fields_list_v3 uses table_read_v3 to get fields (no separate endpoint)."""
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"list": [{"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}]}
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    # fields_list_v3 now uses table_read_v3 which returns fields in the table response
+    fields_data = [{"id": "fld_abc", "title": "Name", "type": "SingleLineText"}]
+    mock_session.request.return_value = _create_mock_response(200, {"id": "tbl456", "fields": fields_data})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -737,18 +748,19 @@ def test_fields_list_v3_calls_correct_url(mock_requests_session):
 
     call_args = mock_session.request.call_args
     assert call_args[0][0] == "GET"
-    assert "/api/v3/meta/bases/base123/tables/tbl456/fields" in call_args[0][1]
-    assert result == expected_response
+    # Now calls table endpoint, not fields endpoint
+    assert "/api/v3/meta/bases/base123/tables/tbl456" in call_args[0][1]
+    # Returns fields wrapped in {"list": [...]} for consistency
+    assert result == {"list": fields_data}
 
 
 @mock.patch.object(requests_lib, "Session")
 def test_fields_list_v3_with_params(mock_requests_session):
-    """Test that fields_list_v3 passes query parameters correctly."""
+    """Test that fields_list_v3 passes query parameters to table_read_v3."""
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"list": []}
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    mock_session.request.return_value = _create_mock_response(200, {"id": "tbl456", "fields": []})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -855,8 +867,8 @@ def test_columns_list_v3_alias_emits_warning(mock_requests_session):
     mock_session = mock.Mock()
     mock_requests_session.return_value = mock_session
 
-    expected_response = {"list": []}
-    mock_session.request.return_value = _create_mock_response(200, expected_response)
+    # fields_list_v3 now uses table_read_v3
+    mock_session.request.return_value = _create_mock_response(200, {"id": "tbl456", "fields": []})
 
     token = APIToken("test-token")
     client = NocoDBRequestsClient(token, "https://app.nocodb.com")
@@ -869,10 +881,10 @@ def test_columns_list_v3_alias_emits_warning(mock_requests_session):
         assert issubclass(w[0].category, DeprecationWarning)
         assert "columns_list_v3() is deprecated" in str(w[0].message)
 
-    # Verify it still works correctly
+    # Verify it still works correctly (now calls table endpoint)
     call_args = mock_session.request.call_args
-    assert "/api/v3/meta/bases/base123/tables/tbl456/fields" in call_args[0][1]
-    assert result == expected_response
+    assert "/api/v3/meta/bases/base123/tables/tbl456" in call_args[0][1]
+    assert result == {"list": []}
 
 
 @mock.patch.object(requests_lib, "Session")
