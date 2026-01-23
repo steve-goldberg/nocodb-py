@@ -1,0 +1,10 @@
+NocoDB Python Client
+Copyright (C) 2026 Steve Goldberg
+
+Based on nocodb-python-client (MIT License)
+Copyright (C) 2022 Samuel López Saura
+https://github.com/ElChicoDePython/python-nocodb
+
+This work is a derivative of the original nocodb-python-client,
+which was released under the MIT License. This derivative work
+is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
