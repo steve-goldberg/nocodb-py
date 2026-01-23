@@ -192,6 +192,44 @@ def create_filter(
         raise typer.Exit(1)
 
 
+@filters_app.command("update")
+def update_filter(
+    ctx: typer.Context,
+    filter_id: str = typer.Argument(..., help="Filter ID"),
+    operator: Optional[str] = typer.Option(None, "--op", "-o", help="Comparison operator (eq, neq, like, etc.)"),
+    value: Optional[str] = typer.Option(None, "--value", help="Filter value"),
+    column_id: Optional[str] = typer.Option(None, "--column", "-c", help="Column/field ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Update a view filter."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        body = {}
+        if operator:
+            body["comparison_op"] = operator
+        if value is not None:
+            body["value"] = value
+        if column_id:
+            body["fk_column_id"] = column_id
+
+        if not body:
+            print_error("No update fields provided", as_json=output_json)
+            raise typer.Exit(1)
+
+        result = client.view_filter_update(filter_id, body)
+
+        if output_json:
+            print_json(result)
+        else:
+            print_success(f"Updated filter {filter_id}")
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
 @filters_app.command("delete")
 def delete_filter(
     ctx: typer.Context,
@@ -282,6 +320,41 @@ def create_sort(
         else:
             print_success(f"Created sort on view {view_id}")
             print_single_item(result)
+
+    except Exception as e:
+        print_error(str(e), as_json=output_json)
+        raise typer.Exit(1)
+
+
+@sorts_app.command("update")
+def update_sort(
+    ctx: typer.Context,
+    sort_id: str = typer.Argument(..., help="Sort ID"),
+    direction: Optional[str] = typer.Option(None, "--direction", "-d", help="Sort direction: asc or desc"),
+    column_id: Optional[str] = typer.Option(None, "--column", "-c", help="Column/field ID"),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
+) -> None:
+    """Update a view sort."""
+    try:
+        config = _get_config(ctx)
+        client = create_client(config)
+
+        body = {}
+        if direction:
+            body["direction"] = direction
+        if column_id:
+            body["fk_column_id"] = column_id
+
+        if not body:
+            print_error("No update fields provided", as_json=output_json)
+            raise typer.Exit(1)
+
+        result = client.view_sort_update(sort_id, body)
+
+        if output_json:
+            print_json(result)
+        else:
+            print_success(f"Updated sort {sort_id}")
 
     except Exception as e:
         print_error(str(e), as_json=output_json)
