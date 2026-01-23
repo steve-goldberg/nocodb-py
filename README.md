@@ -46,7 +46,16 @@ This client uses a hybrid v2/v3 approach based on self-hosted NocoDB availabilit
 ## Installation
 
 ```bash
-pip install nocodb
+# Using uv (recommended)
+uv pip install git+https://github.com/steve-goldberg/nocodb-py.git
+
+# Using pip
+pip install git+https://github.com/steve-goldberg/nocodb-py.git
+
+# From source
+git clone https://github.com/steve-goldberg/nocodb-py.git
+cd nocodb-py
+uv pip install -e .  # or: pip install -e .
 ```
 
 ## Quick Start
