@@ -179,8 +179,8 @@ def delete_record(
         client = create_client(config)
         base_id = get_base_id(config)
 
-        record_ids = [{"id": int(record_id) if record_id.isdigit() else record_id}]
-        result = client.records_delete_v3(base_id, table_id, record_ids)
+        rid = int(record_id) if record_id.isdigit() else record_id
+        result = client.records_delete_v3(base_id, table_id, rid)
 
         if output_json:
             print_json(result)
