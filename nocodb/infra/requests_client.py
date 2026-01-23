@@ -586,44 +586,6 @@ class NocoDBRequestsClient(NocoDBClient):
 
         return self._request("DELETE", url, json=body).json()
 
-    def button_action_trigger_v3(
-        self,
-        base_id: str,
-        table_id: str,
-        column_id: str,
-        row_ids: List[Union[int, str]],
-        preview: bool = False,
-    ) -> List[Dict[str, Any]]:
-        """Trigger button action on specified rows using v3 API.
-
-        POST /api/v3/data/{baseId}/{tableId}/actions/{columnId}
-
-        Supports Formula, Webhook, AI, and Script button types.
-
-        Args:
-            base_id: The base (project) ID
-            table_id: The table ID
-            column_id: The button column ID
-            row_ids: List of record IDs to trigger action on (max 25 per request)
-            preview: If True, preview mode - does not execute the action
-
-        Returns:
-            List of updated DataRecordV3 objects with 'id' and 'fields'
-            Example: [{"id": 1, "fields": {"Name": "Updated"}}]
-
-        Raises:
-            ValueError: If row_ids contains more than 25 items
-        """
-        if len(row_ids) > 25:
-            raise ValueError("Maximum 25 rows per button action request")
-
-        url = self.__api_info.get_button_action_uri(base_id, table_id, column_id)
-        body = {
-            "rowIds": row_ids,
-            "preview": preview
-        }
-        return self._request("POST", url, json=body).json()
-
     def attachment_upload_v3(
         self,
         base_id: str,
@@ -907,68 +869,6 @@ class NocoDBRequestsClient(NocoDBClient):
         """
         url = self.__api_info.get_table_meta_uri_v3(base_id, table_id)
         return self._request("DELETE", url).json()
-
-    # =========================================================================
-    # v3 Meta API Methods - API Tokens
-    # =========================================================================
-
-    def tokens_list(
-        self,
-        params: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        """List all API tokens.
-
-        GET /api/v3/meta/tokens
-
-        Args:
-            params: Optional query parameters
-
-        Returns:
-            Dict with 'tokens' array
-            Example: {"tokens": [{"id": "...", "token": "nc_...", "description": "..."}]}
-        """
-        url = self.__api_info.get_tokens_uri()
-        return self._request("GET", url, params=params).json()
-
-    def token_create(
-        self,
-        body: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        """Create a new API token.
-
-        POST /api/v3/meta/tokens
-
-        Args:
-            body: Token configuration with 'description' key
-                Example: {"description": "My API Token"}
-
-        Returns:
-            Created token object with 'id', 'token', and 'description'
-            Example: {"id": "...", "token": "nc_...", "description": "My API Token"}
-        """
-        url = self.__api_info.get_tokens_uri()
-        return self._request("POST", url, json=body).json()
-
-    def token_delete(
-        self,
-        token_id: str,
-    ) -> Any:
-        """Delete an API token.
-
-        DELETE /api/v3/meta/tokens/{tokenId}
-
-        Args:
-            token_id: The API token ID
-
-        Returns:
-            Deletion confirmation (may be empty or boolean)
-        """
-        url = self.__api_info.get_token_uri(token_id)
-        response = self._request("DELETE", url)
-        try:
-            return response.json()
-        except requests.exceptions.JSONDecodeError:
-            return True
 
     # =========================================================================
     # v3 Meta API Methods - Fields

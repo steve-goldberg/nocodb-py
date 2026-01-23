@@ -157,7 +157,7 @@ nocodb tables create --title "Tasks" \
 nocodb fields create -t TASKS_TABLE_ID \
   --title "Project" \
   --type Links \
-  -o '{"fk_related_model_id":"PROJECTS_TABLE_ID"}' --json
+  -o '{"options":{"relation_type":"hm","related_table_id":"PROJECTS_TABLE_ID"}}' --json
 ```
 
 ### Create Table with All Common Fields

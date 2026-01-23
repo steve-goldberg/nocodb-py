@@ -119,21 +119,6 @@ class NocoDBAPI:
             "/".join((base_id, table_id, "links", link_field_id, str(record_id)))
         )
 
-    def get_button_action_uri(self, base_id: str, table_id: str, column_id: str) -> str:
-        """Get the URI for triggering button actions.
-
-        v3 endpoint: POST /api/v3/data/{baseId}/{tableId}/actions/{columnId}
-
-        Args:
-            base_id: The base (project) ID
-            table_id: The table ID
-            column_id: The button column ID
-
-        Returns:
-            The URI for button action trigger
-        """
-        return urljoin(self.__base_data_uri, "/".join((base_id, table_id, "actions", column_id)))
-
     def get_attachment_upload_uri(
         self,
         base_id: str,
@@ -448,33 +433,6 @@ class NocoDBAPI:
             The URI for single script operations
         """
         return urljoin(self.__base_meta_uri, "/".join(("bases", base_id, "scripts", script_id)))
-
-    # =========================================================================
-    # v3 Meta API URI Methods - API Tokens
-    # =========================================================================
-
-    def get_tokens_uri(self) -> str:
-        """Get the URI for listing/creating API tokens.
-
-        v3 endpoint: GET/POST /api/v3/meta/tokens
-
-        Returns:
-            The URI for API tokens list/create operations
-        """
-        return urljoin(self.__base_meta_uri, "tokens")
-
-    def get_token_uri(self, token_id: str) -> str:
-        """Get the URI for single API token operations.
-
-        v3 endpoint: DELETE /api/v3/meta/tokens/{tokenId}
-
-        Args:
-            token_id: The API token ID
-
-        Returns:
-            The URI for single API token operations
-        """
-        return urljoin(self.__base_meta_uri, "/".join(("tokens", token_id)))
 
     # =========================================================================
     # v3 Meta API URI Methods - Base Members

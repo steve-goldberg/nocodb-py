@@ -6,7 +6,7 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 
 ## Features
 
-- Full v3 Data API (records, links, attachments, button actions)
+- Full v3 Data API (records, links, attachments)
 - v3 Meta API (bases, tables, fields, base members)
 - v2 Meta API (list bases, views, filters, sorts, webhooks)
 - Query filters with logical operators
@@ -36,7 +36,6 @@ This client uses a hybrid v2/v3 approach based on self-hosted NocoDB availabilit
 | Records CRUD | v3 | Full support |
 | Linked Records | v3 | Link/unlink operations |
 | Attachments | v3 | File uploads |
-| Button Actions | v3 | Trigger formula/webhook/AI/script buttons |
 | List Bases | v2 | v3 requires Enterprise |
 | Base CRUD | v3 | Get/update/delete |
 | Base Members | v3 | List/add/update/remove |
@@ -212,7 +211,7 @@ client.linked_records_unlink_v3(base_id, table_id, link_field_id, record_id,
     unlink_records=[{"id": 22}])
 ```
 
-### v3 Attachments & Button Actions
+### v3 Attachments
 
 ```python
 # Upload attachment to a record's attachment field
@@ -222,14 +221,6 @@ client.attachment_upload_v3(
     content_type="application/pdf",
     file_content=base64_encoded_content
 )
-
-# Trigger button action (max 25 rows per request)
-result = client.button_action_trigger_v3(
-    base_id, table_id, column_id,
-    row_ids=[1, 2, 3],
-    preview=False  # Set True for dry run
-)
-# Returns array of updated records
 ```
 
 ### v2 Meta API - Bases & Views

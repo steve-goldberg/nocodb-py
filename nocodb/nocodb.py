@@ -463,37 +463,6 @@ class NocoDBClient:
         pass
 
     @abstractmethod
-    def button_action_trigger_v3(
-        self,
-        base_id: str,
-        table_id: str,
-        column_id: str,
-        row_ids: List[Union[int, str]],
-        preview: bool = False,
-    ) -> List[Dict[str, Any]]:
-        """Trigger button action on specified rows using v3 API.
-
-        POST /api/v3/data/{baseId}/{tableId}/actions/{columnId}
-
-        Supports Formula, Webhook, AI, and Script button types.
-
-        Args:
-            base_id: The base (project) ID
-            table_id: The table ID
-            column_id: The button column ID
-            row_ids: List of record IDs to trigger action on (max 25 per request)
-            preview: If True, preview mode - does not execute the action
-
-        Returns:
-            List of updated DataRecordV3 objects with 'id' and 'fields'
-            Example: [{"id": 1, "fields": {"Name": "Updated"}}]
-
-        Raises:
-            ValueError: If row_ids contains more than 25 items
-        """
-        pass
-
-    @abstractmethod
     def attachment_upload_v3(
         self,
         base_id: str,
@@ -854,64 +823,6 @@ class NocoDBClient:
 
         Returns:
             Deletion confirmation
-        """
-        pass
-
-    # =========================================================================
-    # v3 Meta API Methods - API Tokens
-    # =========================================================================
-
-    @abstractmethod
-    def tokens_list(
-        self,
-        params: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        """List all API tokens.
-
-        GET /api/v3/meta/tokens
-
-        Args:
-            params: Optional query parameters
-
-        Returns:
-            Dict with 'tokens' array
-            Example: {"tokens": [{"id": "...", "token": "nc_...", "description": "..."}]}
-        """
-        pass
-
-    @abstractmethod
-    def token_create(
-        self,
-        body: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        """Create a new API token.
-
-        POST /api/v3/meta/tokens
-
-        Args:
-            body: Token configuration with 'description' key
-                Example: {"description": "My API Token"}
-
-        Returns:
-            Created token object with 'id', 'token', and 'description'
-            Example: {"id": "...", "token": "nc_...", "description": "My API Token"}
-        """
-        pass
-
-    @abstractmethod
-    def token_delete(
-        self,
-        token_id: str,
-    ) -> Any:
-        """Delete an API token.
-
-        DELETE /api/v3/meta/tokens/{tokenId}
-
-        Args:
-            token_id: The API token ID
-
-        Returns:
-            Deletion confirmation (may be empty or boolean)
         """
         pass
 

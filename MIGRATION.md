@@ -6,7 +6,7 @@ This guide documents the hybrid v2/v3 API approach used by this client for self-
 
 Self-hosted NocoDB requires a mix of v2 and v3 APIs:
 
-- **v3 Data API** - All record operations (CRUD, links, attachments, buttons)
+- **v3 Data API** - All record operations (CRUD, links, attachments)
 - **v3 Meta API** - Tables, fields, single base operations, base members
 - **v2 Meta API** - List bases, views, view filters/sorts, list/delete webhooks
 
@@ -19,7 +19,6 @@ Some v3 Meta endpoints are Enterprise-only and return 404 on self-hosted.
 | Records CRUD | v3 | `/api/v3/data/{baseId}/{tableId}/records` | Full support |
 | Linked Records | v3 | `/api/v3/data/{baseId}/{tableId}/links/...` | Full support |
 | Attachments | v3 | `/api/v3/data/.../upload` | Full support |
-| Button Actions | v3 | `/api/v3/data/{baseId}/{tableId}/actions/{columnId}` | Full support |
 | List Bases | v2 | `/api/v2/meta/bases` | v3 requires Enterprise |
 | Get/Update/Delete Base | v3 | `/api/v3/meta/bases/{baseId}` | Works in community |
 | Base Members | v3 | `/api/v3/meta/bases/{baseId}/members` | Full support |

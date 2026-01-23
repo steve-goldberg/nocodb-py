@@ -134,6 +134,12 @@ These features require NocoDB Enterprise and are excluded from this client:
 - Workspace members
 - v3 Views API (use v2 instead)
 - v3 Bases list (use v2 instead)
+- API Token Management (create/list/delete tokens via API)
+- Button Actions (trigger formula/webhook/AI/script buttons via API)
+
+Note: Button fields CAN be created via `fields create --type Button`, but button
+configuration (webhook ID, action type, formula) must be done in the NocoDB UI.
+The trigger API is not available in self-hosted community edition.
 
 ### Broken in Self-Hosted (Removed)
 
