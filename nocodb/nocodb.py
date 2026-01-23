@@ -673,7 +673,7 @@ class NocoDBClient:
             params: Optional query parameters
 
         Returns:
-            Dict with 'tables' array
+            Dict with 'list' array
         """
         pass
 
@@ -937,7 +937,7 @@ class NocoDBClient:
 
         Returns:
             Dict with 'list' array of fields
-            Example: {"list": [{"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}]}
+            Example: {"list": [{"id": "fld_abc", "title": "Name", "type": "SingleLineText"}]}
         """
         pass
 
@@ -955,11 +955,11 @@ class NocoDBClient:
         Args:
             base_id: The base (project) ID
             table_id: The table ID
-            body: Field configuration (title, uidt, etc.)
-                Example: {"title": "Email", "uidt": "Email"}
+            body: Field configuration (title, type, etc.)
+                Example: {"title": "Email", "type": "Email"}
 
         Returns:
-            Created field object with id, title, uidt, etc.
+            Created field object with id, title, type, etc.
         """
         pass
 
@@ -978,8 +978,8 @@ class NocoDBClient:
             field_id: The field ID
 
         Returns:
-            Field object with id, title, uidt, etc.
-            Example: {"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}
+            Field object with id, title, type, etc.
+            Example: {"id": "fld_abc", "title": "Name", "type": "SingleLineText"}
         """
         pass
 

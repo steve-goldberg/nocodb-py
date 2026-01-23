@@ -819,8 +819,8 @@ class NocoDBRequestsClient(NocoDBClient):
             params: Optional query parameters
 
         Returns:
-            Dict with 'tables' array
-            Example: {"tables": [{"id": "tbl_abc", "title": "My Table"}]}
+            Dict with 'list' array
+            Example: {"list": [{"id": "tbl_abc", "title": "My Table"}]}
         """
         url = self.__api_info.get_tables_uri(base_id)
         return self._request("GET", url, params=params).json()
@@ -1033,8 +1033,8 @@ class NocoDBRequestsClient(NocoDBClient):
             field_id: The field ID
 
         Returns:
-            Field object with id, title, uidt, etc.
-            Example: {"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}
+            Field object with id, title, type, etc.
+            Example: {"id": "fld_abc", "title": "Name", "type": "SingleLineText"}
         """
         url = self.__api_info.get_field_uri(base_id, field_id)
         return self._request("GET", url).json()

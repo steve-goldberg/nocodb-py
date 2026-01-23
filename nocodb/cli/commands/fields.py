@@ -47,7 +47,7 @@ def list_fields(
             columns = [
                 ("id", "ID"),
                 ("title", "Title"),
-                ("uidt", "Type"),
+                ("type", "Type"),
                 ("pv", "Primary"),
             ]
             print_items_table(fields, title="Fields", columns=columns)
@@ -96,7 +96,7 @@ def create_field(
         client = create_client(config)
         base_id = get_base_id(config)
 
-        body = {"title": title, "uidt": field_type}
+        body = {"title": title, "type": field_type}
         if options_json:
             options = json.loads(options_json)
             body.update(options)
