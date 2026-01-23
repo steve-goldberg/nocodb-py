@@ -30,17 +30,32 @@ def list_links(
     table_id: str = typer.Option(..., "--table-id", "-t", help="Table ID"),
     link_field_id: str = typer.Option(..., "--link-field", "-l", help="Link field ID"),
     record_id: str = typer.Option(..., "--record-id", "-r", help="Source record ID"),
+    fields_list: Optional[str] = typer.Option(None, "--fields", help="Comma-separated field names to return"),
+    sort: Optional[str] = typer.Option(None, "--sort", "-s", help="Sort field (prefix with - for desc)"),
+    filter_str: Optional[str] = typer.Option(None, "--filter", "-f", help="Filter expression: (field,op,value)"),
     page: int = typer.Option(1, "--page", help="Page number"),
     page_size: int = typer.Option(25, "--page-size", "-n", help="Results per page"),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
 ) -> None:
-    """List linked records."""
+    """List linked records.
+
+    Examples:
+        nocodb links list -t tbl_xxx -l fld_xxx -r 1
+        nocodb links list -t tbl_xxx -l fld_xxx -r 1 --fields Name,Status --sort -Created
+        nocodb links list -t tbl_xxx -l fld_xxx -r 1 --filter "(Status,eq,Active)"
+    """
     try:
         config = _get_config(ctx)
         client = create_client(config)
         base_id = get_base_id(config)
 
         params = {"page": page, "pageSize": page_size}
+        if fields_list:
+            params["fields"] = fields_list
+        if sort:
+            params["sort"] = sort
+        if filter_str:
+            params["where"] = filter_str
 
         result = client.linked_records_list_v3(
             base_id, table_id, link_field_id, record_id, params=params
@@ -51,9 +66,11 @@ def list_links(
         if output_json:
             print_json(result, meta={"page": page, "pageSize": page_size})
         else:
+            field_names = fields_list.split(",") if fields_list else None
             print_records_table(
                 records,
-                title=f"Linked Records (Record #{record_id}, Field {link_field_id})"
+                title=f"Linked Records (Record #{record_id}, Field {link_field_id})",
+                fields=field_names
             )
 
     except Exception as e:

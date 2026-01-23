@@ -98,7 +98,7 @@ def init_config(
     console.print("For security, set your token via NOCODB_TOKEN environment variable.")
 
 
-from .commands import bases, fields, links, records, tables, views, webhooks
+from .commands import attachments, bases, buttons, fields, links, members, records, tables, tokens, views, webhooks
 
 app.add_typer(records.app, name="records", help="Record operations")
 app.add_typer(bases.app, name="bases", help="Base management")
@@ -107,6 +107,10 @@ app.add_typer(fields.app, name="fields", help="Field management")
 app.add_typer(links.app, name="links", help="Linked records operations")
 app.add_typer(views.app, name="views", help="View management")
 app.add_typer(webhooks.app, name="webhooks", help="Webhook management")
+app.add_typer(attachments.app, name="attachments", help="Attachment operations")
+app.add_typer(buttons.app, name="buttons", help="Button action operations")
+app.add_typer(tokens.app, name="tokens", help="API token management")
+app.add_typer(members.app, name="members", help="Base member management")
 
 
 @app.command("list")
