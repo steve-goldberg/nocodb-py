@@ -5,3 +5,9 @@ dist/
 *.swp
 *.pyc
 .env
+
+# Local development files
+features.json
+init.sh
+claude-progress.txt
+e2e-progress.txt
