@@ -127,14 +127,14 @@ nocodb fields delete --ids "fld_xxx,fld_yyy,fld_zzz" [-f] [--json]
 [
   {"title": "Email", "type": "Email"},
   {"title": "Status", "type": "SingleSelect", "options": {"choices": [
-    {"title": "Active"},
-    {"title": "Inactive"}
+    {"title": "Active", "color": "#27ae60"},
+    {"title": "Inactive", "color": "#e74c3c"}
   ]}},
   {"title": "Notes", "type": "LongText"}
 ]
 ```
 
-**Note:** Colors for SingleSelect/MultiSelect choices must be set via NocoDB UI after creation.
+**Note:** Colors must be HEX codes (e.g., `#27ae60`), not named colors (e.g., `green`).
 
 ### Links Fields (Use --file)
 
@@ -416,7 +416,7 @@ nocodb fields delete --ids "fld_xxx,fld_yyy" [-f] [--json]
 
 | Issue | Solution |
 |-------|----------|
-| SingleSelect with colors | Omit colors from choices, set via NocoDB UI |
+| SingleSelect with named colors | Use HEX codes (`#27ae60`) not named colors (`green`) |
 | Links field inline `--options` | Use `--file` instead (shell escaping issues with nested JSON) |
 | Unknown field type | Check spelling and case (e.g., `SingleLineText` not `singlelinetext`) |
 
@@ -438,8 +438,8 @@ For **SingleSelect**, **MultiSelect**, and **Links** fields, prefer `--file` ove
 # Write schema to file
 cat > schema.json << 'EOF'
 [{"title": "Category", "type": "SingleSelect", "options": {"choices": [
-  {"title": "Option A"},
-  {"title": "Option B"}
+  {"title": "Option A", "color": "#3498db"},
+  {"title": "Option B", "color": "#e91e63"}
 ]}}]
 EOF
 
