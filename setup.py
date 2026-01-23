@@ -20,4 +20,17 @@ setup(
    install_requires=[
        "requests>=2.0",
    ],
+   extras_require={
+       "cli": [
+           "typer[all]>=0.12.0",
+           "rich>=13.0.0",
+           "tomli>=2.0.0;python_version<'3.11'",
+       ],
+   },
+   entry_points={
+       "console_scripts": [
+           "nocodb=nocodb.cli.main:app",
+       ],
+   },
+   python_requires=">=3.9",
 )
