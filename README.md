@@ -12,7 +12,8 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 - Query filters with logical operators
 - Batch operations for records
 - Pagination helpers
-- 138 tests, fully typed
+- Full CLI with Typer/Rich
+- 130 tests, fully typed
 
 ## Project Status
 
@@ -20,9 +21,11 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 
 | Category | Status |
 |----------|--------|
-| Data API (v3) | 12 of 12 |
-| Meta API | 25 of 25 |
-| **Total** | **37 of 37 (100%)** |
+| Data API (v3) | 11 of 11 |
+| Meta API | 17 of 17 |
+| Filters/Utils | 9 of 9 |
+| CLI | 9 of 9 |
+| **Total** | **46 of 47 (98%)** |
 
 ## API Version Summary
 
@@ -39,9 +42,9 @@ This client uses a hybrid v2/v3 approach based on self-hosted NocoDB availabilit
 | Base Members | v3 | List/add/update/remove |
 | Tables CRUD | v3 | Full support |
 | Fields CRUD | v3 | Full support |
-| Views CRUD | v2 | v3 requires Enterprise |
+| Views (list/update/delete) | v2 | v3 requires Enterprise, create/get broken |
 | View Filters/Sorts | v2 | v3 requires Enterprise |
-| Webhooks | v2 | Full CRUD + test |
+| Webhooks (list/delete) | v2 | create/get/update/test broken in self-hosted |
 
 ## Installation
 
@@ -251,10 +254,9 @@ client.view_sort_create(view_id, {"fk_column_id": "col_id", "direction": "asc"})
 client.view_sort_update(sort_id, {"direction": "desc"})
 client.view_sort_delete(sort_id)
 
-# Webhooks CRUD (v2 API)
+# Webhooks (v2 API - list/delete only in self-hosted)
 webhooks = client.webhooks_list(table_id)
-client.webhook_create(table_id, {"title": "My Hook", "event": "after.insert", "url": "https://..."})
-client.webhook_test(hook_id)
+client.webhook_delete(hook_id)
 ```
 
 ### v3 Meta API - Tables, Fields & Members
@@ -262,7 +264,7 @@ client.webhook_test(hook_id)
 ```python
 # List tables in a base
 tables = client.tables_list_v3(base_id)
-# Response: {"tables": [{"id": "tbl_abc", "title": "My Table"}]}
+# Response: {"list": [{"id": "tbl_abc", "title": "My Table"}]}
 
 # Get table schema
 table_meta = client.table_get_v3(base_id, table_id)
@@ -383,6 +385,58 @@ result = client.records_list_v3(base_id, table_id)
 records = result["records"]
 ```
 
+## Command-Line Interface
+
+Install with CLI support:
+
+```bash
+pip install -e ".[cli]"
+# or: uv pip install -e ".[cli]"
+```
+
+### Configuration
+
+Create `~/.nocodb.toml`:
+
+```toml
+url = "http://localhost:8080"
+token = "YOUR-API-TOKEN"
+```
+
+Or use environment variables: `NOCODB_URL`, `NOCODB_TOKEN`
+
+### CLI Commands
+
+```bash
+# Records
+nocodb records list BASE_ID TABLE_ID
+nocodb records get BASE_ID TABLE_ID RECORD_ID
+nocodb records create BASE_ID TABLE_ID --data '{"Name": "New"}'
+nocodb records update BASE_ID TABLE_ID RECORD_ID --data '{"Status": "Done"}'
+nocodb records delete BASE_ID TABLE_ID RECORD_ID
+
+# With filtering and sorting
+nocodb records list BASE_ID TABLE_ID --filter "(Status,eq,Active)" --sort "-CreatedAt"
+
+# Bases, tables, fields
+nocodb bases list
+nocodb tables list BASE_ID
+nocodb fields list BASE_ID TABLE_ID
+
+# Linked records
+nocodb links list BASE_ID TABLE_ID LINK_FIELD_ID RECORD_ID
+nocodb links link BASE_ID TABLE_ID LINK_FIELD_ID RECORD_ID --targets 22,43
+nocodb links unlink BASE_ID TABLE_ID LINK_FIELD_ID RECORD_ID --targets 22
+
+# Views and filters
+nocodb views list TABLE_ID
+nocodb views filters list VIEW_ID
+nocodb views sorts list VIEW_ID
+
+# JSON output (pipe to jq)
+nocodb records list BASE_ID TABLE_ID --json | jq '.records[].fields.Name'
+```
+
 ## Not Supported (Enterprise Only)
 
 These features require NocoDB Enterprise and are not available in self-hosted community edition:
@@ -395,10 +449,12 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 
 ## Recent Changes
 
+- fix(api): remove v2 operations that don't work in self-hosted (webhooks create/get/update/test, views create/get)
+- fix(cli): stop double-wrapping record ID in delete command
+- fix(docs): update API docs to match actual v3 response format
+- feat(cli): add full CLI for managing NocoDB from the terminal
+- fix(api): correct v3 response handling and field retrieval
 - feat(api): implement Wave 8 - attachments, button actions, view filters/sorts, webhooks, base members
-- feat(api): implement Wave 7 - links, fields, views, base CRUD
-- feat(api): implement Wave 6 - bases list v2, table CRUD, tokens
-- feat(api): implement Wave 5 - pagination, scripts, docs, tests
 - chore: relicense from MIT to AGPL-3.0
 
 ## License
@@ -411,4 +467,11 @@ This project is licensed under the GNU Affero General Public License v3.0.
 
 ## Contributing
 
-See [contributors.md](contributors.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines. Key points:
+
+- **Open an issue first** - Required for all changes except docs/typos
+- **First-time PRs**: Maximum 5 files, 200 lines (tests/docs don't count)
+- **Use `/pr-overview`** - Run this Claude Code skill to generate your PR description
+- **One change per PR** - No bundling unrelated changes
+
+PRs that don't follow these guidelines will be closed automatically.
