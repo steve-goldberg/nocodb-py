@@ -511,6 +511,72 @@ class NocoDBRequestsClient(NocoDBClient):
         url = self.__api_info.get_linked_records_uri(base_id, table_id, link_field_id, str(record_id))
         return self._request("GET", url, params=params).json()
 
+    def linked_records_link_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        link_field_id: str,
+        record_id: Union[int, str],
+        linked_record_ids: Union[int, str, List[Union[int, str]]],
+    ) -> List[Dict[str, Any]]:
+        """Link records to a specific record using v3 API.
+
+        POST /api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            link_field_id: The link field ID
+            record_id: The record ID to link to
+            linked_record_ids: Single record ID or list of record IDs to link
+
+        Returns:
+            List of linked record references
+            Example: [{"id": 1}, {"id": 2}]
+        """
+        url = self.__api_info.get_linked_records_uri(base_id, table_id, link_field_id, str(record_id))
+
+        # Normalize to list format for API
+        if isinstance(linked_record_ids, (int, str)):
+            body = [{"id": linked_record_ids}]
+        else:
+            body = [{"id": rid} for rid in linked_record_ids]
+
+        return self._request("POST", url, json=body).json()
+
+    def linked_records_unlink_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        link_field_id: str,
+        record_id: Union[int, str],
+        linked_record_ids: Union[int, str, List[Union[int, str]]],
+    ) -> List[Dict[str, Any]]:
+        """Unlink records from a specific record using v3 API.
+
+        DELETE /api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            link_field_id: The link field ID
+            record_id: The record ID to unlink from
+            linked_record_ids: Single ID or list of IDs of records to unlink
+
+        Returns:
+            List of unlinked record IDs
+            Example: [{"id": 1}, {"id": 2}]
+        """
+        url = self.__api_info.get_linked_records_uri(base_id, table_id, link_field_id, str(record_id))
+
+        # Normalize to list format for API
+        if isinstance(linked_record_ids, (int, str)):
+            body = [{"id": linked_record_ids}]
+        else:
+            body = [{"id": rid} for rid in linked_record_ids]
+
+        return self._request("DELETE", url, json=body).json()
+
     # =========================================================================
     # v3 Meta API Methods
     # =========================================================================
@@ -577,6 +643,80 @@ class NocoDBRequestsClient(NocoDBClient):
         """
         url = self.__api_info.get_bases_list_uri_v2()
         return self._request("GET", url, params=params).json()
+
+    def base_create(
+        self,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new base using v2 API.
+
+        POST /api/v2/meta/bases
+
+        Note: v3 base creation is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            body: Base configuration with 'title' key
+                Example: {"title": "My New Base"}
+
+        Returns:
+            Created base object with id, title, etc.
+            Example: {"id": "base_abc", "title": "My New Base", ...}
+        """
+        url = self.__api_info.get_base_create_uri_v2()
+        return self._request("POST", url, json=body).json()
+
+    def base_read(
+        self,
+        base_id: str,
+    ) -> Dict[str, Any]:
+        """Read a single base's metadata using v3 API.
+
+        GET /api/v3/meta/bases/{baseId}
+
+        Args:
+            base_id: The base (project) ID
+
+        Returns:
+            Base object with id, title, tables, etc.
+        """
+        url = self.__api_info.get_base_uri(base_id)
+        return self._request("GET", url).json()
+
+    def base_update(
+        self,
+        base_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a base's metadata using v3 API.
+
+        PATCH /api/v3/meta/bases/{baseId}
+
+        Args:
+            base_id: The base (project) ID
+            body: Fields to update (e.g., {"title": "NewName"})
+
+        Returns:
+            Updated base object
+        """
+        url = self.__api_info.get_base_uri(base_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def base_delete(
+        self,
+        base_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a base using v3 API.
+
+        DELETE /api/v3/meta/bases/{baseId}
+
+        Args:
+            base_id: The base (project) ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_base_uri(base_id)
+        return self._request("DELETE", url).json()
 
     def tables_list_v3(
         self,
@@ -738,3 +878,280 @@ class NocoDBRequestsClient(NocoDBClient):
             return response.json()
         except requests.exceptions.JSONDecodeError:
             return True
+
+    # =========================================================================
+    # v3 Meta API Methods - Fields
+    # =========================================================================
+
+    def fields_list_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all fields/columns in a table.
+
+        GET /api/v3/meta/bases/{baseId}/tables/{tableId}/fields
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'list' array of fields
+            Example: {"list": [{"id": "fld_abc", "title": "Name", "uidt": "SingleLineText"}]}
+        """
+        url = self.__api_info.get_fields_uri(base_id, table_id)
+        return self._request("GET", url, params=params).json()
+
+    def field_create_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new field/column in a table.
+
+        POST /api/v3/meta/bases/{baseId}/tables/{tableId}/fields
+
+        Args:
+            base_id: The base (project) ID
+            table_id: The table ID
+            body: Field configuration (title, uidt, etc.)
+                Example: {"title": "Email", "uidt": "Email"}
+
+        Returns:
+            Created field object with id, title, uidt, etc.
+        """
+        url = self.__api_info.get_fields_uri(base_id, table_id)
+        return self._request("POST", url, json=body).json()
+
+    def field_update_v3(
+        self,
+        base_id: str,
+        field_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a field/column.
+
+        PATCH /api/v3/meta/bases/{baseId}/fields/{fieldId}
+
+        Args:
+            base_id: The base (project) ID
+            field_id: The field ID
+            body: Fields to update (e.g., {"title": "NewName"})
+
+        Returns:
+            Updated field object
+        """
+        url = self.__api_info.get_field_uri(base_id, field_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def field_delete_v3(
+        self,
+        base_id: str,
+        field_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a field/column.
+
+        DELETE /api/v3/meta/bases/{baseId}/fields/{fieldId}
+
+        Args:
+            base_id: The base (project) ID
+            field_id: The field ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_field_uri(base_id, field_id)
+        return self._request("DELETE", url).json()
+
+    # =========================================================================
+    # Backwards Compatibility Aliases (column -> field)
+    # =========================================================================
+
+    def columns_list_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Alias for fields_list_v3 (backwards compatibility).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`fields_list_v3` instead.
+        """
+        warnings.warn(
+            "columns_list_v3() is deprecated. Use fields_list_v3() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.fields_list_v3(base_id, table_id, params)
+
+    def column_create_v3(
+        self,
+        base_id: str,
+        table_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Alias for field_create_v3 (backwards compatibility).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`field_create_v3` instead.
+        """
+        warnings.warn(
+            "column_create_v3() is deprecated. Use field_create_v3() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.field_create_v3(base_id, table_id, body)
+
+    def column_update_v3(
+        self,
+        base_id: str,
+        field_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Alias for field_update_v3 (backwards compatibility).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`field_update_v3` instead.
+        """
+        warnings.warn(
+            "column_update_v3() is deprecated. Use field_update_v3() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.field_update_v3(base_id, field_id, body)
+
+    def column_delete_v3(
+        self,
+        base_id: str,
+        field_id: str,
+    ) -> Dict[str, Any]:
+        """Alias for field_delete_v3 (backwards compatibility).
+
+        .. deprecated:: 3.0.0
+            Use :meth:`field_delete_v3` instead.
+        """
+        warnings.warn(
+            "column_delete_v3() is deprecated. Use field_delete_v3() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        return self.field_delete_v3(base_id, field_id)
+
+    # =========================================================================
+    # v2 Meta API Methods - Views
+    # =========================================================================
+
+    def views_list(
+        self,
+        table_id: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """List all views for a table using v2 API.
+
+        GET /api/v2/meta/tables/{tableId}/views
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            table_id: The table ID
+            params: Optional query parameters
+
+        Returns:
+            Dict with 'list' array of views
+            Example: {"list": [{"id": "vw_abc", "title": "Grid View", "type": 3}]}
+        """
+        url = self.__api_info.get_views_uri(table_id)
+        return self._request("GET", url, params=params).json()
+
+    def view_create(
+        self,
+        table_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Create a new view for a table using v2 API.
+
+        POST /api/v2/meta/tables/{tableId}/views
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        View types:
+            - 3: grid
+            - 1: gallery
+            - 2: kanban
+            - 4: calendar
+            - 5: form
+
+        Args:
+            table_id: The table ID
+            body: View configuration
+                Example: {"title": "My View", "type": 3}
+
+        Returns:
+            Created view object with id, title, type, etc.
+        """
+        url = self.__api_info.get_views_uri(table_id)
+        return self._request("POST", url, json=body).json()
+
+    def view_read(
+        self,
+        view_id: str,
+    ) -> Dict[str, Any]:
+        """Read a single view's metadata using v2 API.
+
+        GET /api/v2/meta/views/{viewId}
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            View object with id, title, type, etc.
+        """
+        url = self.__api_info.get_view_uri(view_id)
+        return self._request("GET", url).json()
+
+    def view_update(
+        self,
+        view_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a view's metadata using v2 API.
+
+        PATCH /api/v2/meta/views/{viewId}
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+            body: Fields to update (e.g., {"title": "NewName"})
+
+        Returns:
+            Updated view object
+        """
+        url = self.__api_info.get_view_uri(view_id)
+        return self._request("PATCH", url, json=body).json()
+
+    def view_delete(
+        self,
+        view_id: str,
+    ) -> Dict[str, Any]:
+        """Delete a view using v2 API.
+
+        DELETE /api/v2/meta/views/{viewId}
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            Deletion confirmation
+        """
+        url = self.__api_info.get_view_uri(view_id)
+        return self._request("DELETE", url).json()

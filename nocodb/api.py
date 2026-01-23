@@ -181,6 +181,48 @@ class NocoDBAPI:
         """
         return urljoin(self.__base_meta_uri_v2, "bases")
 
+    def get_base_create_uri_v2(self) -> str:
+        """Get the URI for creating a base using v2 API.
+
+        v2 endpoint: POST /api/v2/meta/bases
+
+        Note: v3 base creation is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Returns:
+            The URI for base creation
+        """
+        return urljoin(self.__base_meta_uri_v2, "bases")
+
+    def get_views_uri(self, table_id: str) -> str:
+        """Get the URI for listing/creating views using v2 API.
+
+        v2 endpoint: GET/POST /api/v2/meta/tables/{tableId}/views
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            table_id: The table ID
+
+        Returns:
+            The URI for views list/create operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("tables", table_id, "views")))
+
+    def get_view_uri(self, view_id: str) -> str:
+        """Get the URI for single view operations using v2 API.
+
+        v2 endpoint: GET/PATCH/DELETE /api/v2/meta/views/{viewId}
+
+        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
+
+        Args:
+            view_id: The view ID
+
+        Returns:
+            The URI for single view operations
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("views", view_id)))
+
     # =========================================================================
     # v3 Meta API URI Methods - Tables
     # =========================================================================
