@@ -112,6 +112,20 @@ nocodb views sorts update SORT_ID --direction desc
 nocodb views sorts delete SORT_ID
 ```
 
+### Attachments
+```bash
+nocodb attachments upload -t TABLE_ID -r RECORD_ID -f FIELD_ID --file /path/to/file.pdf
+nocodb attachments upload -t TABLE_ID -r RECORD_ID -f FIELD_ID --file image.png --json
+```
+
+### Members
+```bash
+nocodb members list                         # List base members
+nocodb members add --email "user@example.com" --role editor
+nocodb members update MEMBER_ID --role viewer
+nocodb members remove MEMBER_ID
+```
+
 ## Field Types
 
 | Type | Description | Options Example |
@@ -241,9 +255,22 @@ nocodb records list BASE TABLE --json | jq '.records[].id'
 | Fields | full CRUD | ✅ |
 | Records | full CRUD | ✅ |
 | Links | list, link, unlink | ✅ |
+| Attachments | upload | ✅ |
+| Members | full CRUD | ✅ |
 | Views | list, update, delete | Cannot create or get single view |
 | View Filters | full CRUD | ✅ |
 | View Sorts | full CRUD | ✅ |
 | Webhooks | list, delete | Cannot create/get/update/test |
 
 Use NocoDB web UI to create views and webhooks, then manage via CLI.
+
+## Enterprise-Only Features (Not Available)
+
+These features require NocoDB Enterprise and are **not supported** in self-hosted community edition:
+
+| Feature | Reason |
+|---------|--------|
+| API Token Management | Token create/list/delete via API is Enterprise-only |
+| Button Action Triggers | Trigger buttons via API is Enterprise-only |
+
+**Note:** Button fields CAN be created via `fields create --type Button`, but button configuration (webhook ID, action type, formula) must be done in the NocoDB web UI. The trigger API returns 404 on self-hosted.
