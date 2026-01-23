@@ -1,7 +1,8 @@
-"""Webhook management commands for NocoDB CLI."""
+"""Webhook management commands for NocoDB CLI.
 
-import json
-from typing import Optional
+Note: Only list and delete operations are supported via the v2 API.
+Create, read, update, and test operations are not available in self-hosted NocoDB.
+"""
 
 import typer
 
@@ -11,11 +12,10 @@ from nocodb.cli.formatters import (
     print_error,
     print_items_table,
     print_json,
-    print_single_item,
     print_success,
 )
 
-app = typer.Typer(no_args_is_help=True, help="Webhook management")
+app = typer.Typer(no_args_is_help=True, help="Webhook management (list, delete only)")
 
 
 def _get_config(ctx: typer.Context) -> Config:
@@ -24,16 +24,6 @@ def _get_config(ctx: typer.Context) -> Config:
         return ctx.obj["config"]
     from nocodb.cli.config import load_config
     return load_config()
-
-
-WEBHOOK_EVENTS = [
-    "after.insert",
-    "after.update",
-    "after.delete",
-    "after.bulkInsert",
-    "after.bulkUpdate",
-    "after.bulkDelete",
-]
 
 
 @app.command("list")
@@ -67,122 +57,6 @@ def list_webhooks(
         raise typer.Exit(1)
 
 
-@app.command("get")
-def get_webhook(
-    ctx: typer.Context,
-    hook_id: str = typer.Argument(..., help="Webhook ID"),
-    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
-) -> None:
-    """Get webhook details."""
-    try:
-        config = _get_config(ctx)
-        client = create_client(config)
-
-        result = client.webhook_read(hook_id)
-
-        if output_json:
-            print_json(result)
-        else:
-            print_single_item(result, title=f"Webhook: {result.get('title', hook_id)}")
-
-    except Exception as e:
-        print_error(str(e), as_json=output_json)
-        raise typer.Exit(1)
-
-
-@app.command("create")
-def create_webhook(
-    ctx: typer.Context,
-    table_id: str = typer.Option(..., "--table-id", "-t", help="Table ID"),
-    title: str = typer.Option(..., "--title", help="Webhook title"),
-    event: str = typer.Option(..., "--event", "-e", help="Event: after.insert, after.update, after.delete, etc."),
-    url: str = typer.Option(..., "--url", help="Webhook URL"),
-    active: bool = typer.Option(True, "--active/--inactive", help="Whether webhook is active"),
-    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
-) -> None:
-    """Create a new webhook."""
-    try:
-        config = _get_config(ctx)
-        client = create_client(config)
-
-        if event not in WEBHOOK_EVENTS:
-            print_error(f"Invalid event: {event}. Must be one of: {', '.join(WEBHOOK_EVENTS)}", as_json=output_json)
-            raise typer.Exit(1)
-
-        body = {
-            "title": title,
-            "event": event,
-            "notification": {
-                "type": "URL",
-                "payload": {
-                    "method": "POST",
-                    "body": "{{ json data }}",
-                    "headers": [{"name": "Content-Type", "value": "application/json"}],
-                    "path": url,
-                },
-            },
-            "active": active,
-        }
-
-        result = client.webhook_create(table_id, body)
-
-        if output_json:
-            print_json(result)
-        else:
-            print_success(f"Created webhook: {result.get('title', 'unknown')}")
-            print_single_item(result)
-
-    except Exception as e:
-        print_error(str(e), as_json=output_json)
-        raise typer.Exit(1)
-
-
-@app.command("update")
-def update_webhook(
-    ctx: typer.Context,
-    hook_id: str = typer.Argument(..., help="Webhook ID"),
-    title: Optional[str] = typer.Option(None, "--title", help="New title"),
-    url: Optional[str] = typer.Option(None, "--url", help="New URL"),
-    active: Optional[bool] = typer.Option(None, "--active/--inactive", help="Enable/disable webhook"),
-    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
-) -> None:
-    """Update a webhook."""
-    try:
-        config = _get_config(ctx)
-        client = create_client(config)
-
-        body = {}
-        if title:
-            body["title"] = title
-        if url:
-            body["notification"] = {
-                "type": "URL",
-                "payload": {
-                    "method": "POST",
-                    "body": "{{ json data }}",
-                    "headers": [{"name": "Content-Type", "value": "application/json"}],
-                    "path": url,
-                },
-            }
-        if active is not None:
-            body["active"] = active
-
-        if not body:
-            print_error("No update fields provided", as_json=output_json)
-            raise typer.Exit(1)
-
-        result = client.webhook_update(hook_id, body)
-
-        if output_json:
-            print_json(result)
-        else:
-            print_success(f"Updated webhook {hook_id}")
-
-    except Exception as e:
-        print_error(str(e), as_json=output_json)
-        raise typer.Exit(1)
-
-
 @app.command("delete")
 def delete_webhook(
     ctx: typer.Context,
@@ -207,31 +81,6 @@ def delete_webhook(
             print_json(result or {"deleted": True})
         else:
             print_success(f"Deleted webhook {hook_id}")
-
-    except Exception as e:
-        print_error(str(e), as_json=output_json)
-        raise typer.Exit(1)
-
-
-@app.command("test")
-def test_webhook(
-    ctx: typer.Context,
-    hook_id: str = typer.Argument(..., help="Webhook ID"),
-    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
-) -> None:
-    """Test a webhook."""
-    try:
-        config = _get_config(ctx)
-        client = create_client(config)
-
-        result = client.webhook_test(hook_id)
-
-        if output_json:
-            print_json(result)
-        else:
-            print_success(f"Webhook {hook_id} test sent")
-            if result:
-                print_single_item(result, title="Test Result")
 
     except Exception as e:
         print_error(str(e), as_json=output_json)

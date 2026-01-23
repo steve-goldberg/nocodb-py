@@ -1197,53 +1197,7 @@ class NocoDBRequestsClient(NocoDBClient):
         url = self.__api_info.get_views_uri(table_id)
         return self._request("GET", url, params=params).json()
 
-    def view_create(
-        self,
-        table_id: str,
-        body: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        """Create a new view for a table using v2 API.
-
-        POST /api/v2/meta/tables/{tableId}/views
-
-        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
-
-        View types:
-            - 3: grid
-            - 1: gallery
-            - 2: kanban
-            - 4: calendar
-            - 5: form
-
-        Args:
-            table_id: The table ID
-            body: View configuration
-                Example: {"title": "My View", "type": 3}
-
-        Returns:
-            Created view object with id, title, type, etc.
-        """
-        url = self.__api_info.get_views_uri(table_id)
-        return self._request("POST", url, json=body).json()
-
-    def view_read(
-        self,
-        view_id: str,
-    ) -> Dict[str, Any]:
-        """Read a single view's metadata using v2 API.
-
-        GET /api/v2/meta/views/{viewId}
-
-        Note: v3 Views API is Enterprise-only. Self-hosted NocoDB must use v2.
-
-        Args:
-            view_id: The view ID
-
-        Returns:
-            View object with id, title, type, etc.
-        """
-        url = self.__api_info.get_view_uri(view_id)
-        return self._request("GET", url).json()
+    # Note: view_create and view_read are not supported in self-hosted NocoDB v2 API
 
     def view_update(
         self,
@@ -1495,82 +1449,7 @@ class NocoDBRequestsClient(NocoDBClient):
         url = self.__api_info.get_webhooks_uri(table_id)
         return self._request("GET", url, params=params).json()
 
-    def webhook_create(
-        self,
-        table_id: str,
-        body: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        """Create a new webhook for a table using v2 API.
-
-        POST /api/v2/meta/tables/{tableId}/hooks
-
-        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
-
-        Webhook events:
-            - after.insert: After record insert
-            - after.update: After record update
-            - after.delete: After record delete
-            - after.bulkInsert: After bulk insert
-            - after.bulkUpdate: After bulk update
-            - after.bulkDelete: After bulk delete
-
-        Args:
-            table_id: The table ID
-            body: Webhook configuration
-                Example: {
-                    "title": "My Webhook",
-                    "event": "after.insert",
-                    "notification": {
-                        "type": "URL",
-                        "payload": {"method": "POST", "path": "https://example.com/hook"}
-                    }
-                }
-
-        Returns:
-            Created webhook object with id, title, event, etc.
-        """
-        url = self.__api_info.get_webhooks_uri(table_id)
-        return self._request("POST", url, json=body).json()
-
-    def webhook_read(
-        self,
-        hook_id: str,
-    ) -> Dict[str, Any]:
-        """Read a single webhook's metadata using v2 API.
-
-        GET /api/v2/meta/hooks/{hookId}
-
-        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
-
-        Args:
-            hook_id: The webhook (hook) ID
-
-        Returns:
-            Webhook object with id, title, event, notification, etc.
-        """
-        url = self.__api_info.get_webhook_uri(hook_id)
-        return self._request("GET", url).json()
-
-    def webhook_update(
-        self,
-        hook_id: str,
-        body: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        """Update a webhook's configuration using v2 API.
-
-        PATCH /api/v2/meta/hooks/{hookId}
-
-        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
-
-        Args:
-            hook_id: The webhook (hook) ID
-            body: Fields to update (e.g., {"title": "NewName", "active": false})
-
-        Returns:
-            Updated webhook object
-        """
-        url = self.__api_info.get_webhook_uri(hook_id)
-        return self._request("PATCH", url, json=body).json()
+    # Note: webhook_create, webhook_read, webhook_update are not supported in self-hosted NocoDB v2 API
 
     def webhook_delete(
         self,
@@ -1591,28 +1470,7 @@ class NocoDBRequestsClient(NocoDBClient):
         url = self.__api_info.get_webhook_uri(hook_id)
         return self._request("DELETE", url).json()
 
-    def webhook_test(
-        self,
-        hook_id: str,
-        body: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        """Test a webhook using v2 API.
-
-        POST /api/v2/meta/hooks/test/{hookId}
-
-        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
-
-        This endpoint triggers a test call to the webhook URL with sample payload.
-
-        Args:
-            hook_id: The webhook (hook) ID
-            body: Optional test payload data
-
-        Returns:
-            Test result indicating success or failure
-        """
-        url = self.__api_info.get_webhook_test_uri(hook_id)
-        return self._request("POST", url, json=body).json()
+    # Note: webhook_test is not supported in self-hosted NocoDB v2 API
 
     # =========================================================================
     # v3 Meta API Methods - Base Members

@@ -1,6 +1,10 @@
-"""View management commands for NocoDB CLI."""
+"""View management commands for NocoDB CLI.
 
-import json
+Note: View creation is not supported via the v2 API in self-hosted NocoDB.
+Use list, update, delete operations for views created through the UI.
+Filters and sorts have full CRUD support.
+"""
+
 from typing import Optional
 
 import typer
@@ -24,15 +28,6 @@ def _get_config(ctx: typer.Context) -> Config:
         return ctx.obj["config"]
     from nocodb.cli.config import load_config
     return load_config()
-
-
-VIEW_TYPES = {
-    "grid": 3,
-    "gallery": 1,
-    "kanban": 2,
-    "calendar": 4,
-    "form": 5,
-}
 
 
 @app.command("list")
@@ -60,62 +55,6 @@ def list_views(
                 ("is_default", "Default"),
             ]
             print_items_table(views, title="Views", columns=columns)
-
-    except Exception as e:
-        print_error(str(e), as_json=output_json)
-        raise typer.Exit(1)
-
-
-@app.command("get")
-def get_view(
-    ctx: typer.Context,
-    view_id: str = typer.Argument(..., help="View ID"),
-    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
-) -> None:
-    """Get view details."""
-    try:
-        config = _get_config(ctx)
-        client = create_client(config)
-
-        result = client.view_read(view_id)
-
-        if output_json:
-            print_json(result)
-        else:
-            print_single_item(result, title=f"View: {result.get('title', view_id)}")
-
-    except Exception as e:
-        print_error(str(e), as_json=output_json)
-        raise typer.Exit(1)
-
-
-@app.command("create")
-def create_view(
-    ctx: typer.Context,
-    table_id: str = typer.Option(..., "--table-id", "-t", help="Table ID"),
-    title: str = typer.Option(..., "--title", help="View title"),
-    view_type: str = typer.Option("grid", "--type", help="View type: grid, gallery, kanban, calendar, form"),
-    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
-) -> None:
-    """Create a new view."""
-    try:
-        config = _get_config(ctx)
-        client = create_client(config)
-
-        type_num = VIEW_TYPES.get(view_type.lower())
-        if type_num is None:
-            print_error(f"Invalid view type: {view_type}. Must be one of: {', '.join(VIEW_TYPES.keys())}", as_json=output_json)
-            raise typer.Exit(1)
-
-        body = {"title": title, "type": type_num}
-
-        result = client.view_create(table_id, body)
-
-        if output_json:
-            print_json(result)
-        else:
-            print_success(f"Created view: {result.get('title', 'unknown')}")
-            print_single_item(result)
 
     except Exception as e:
         print_error(str(e), as_json=output_json)

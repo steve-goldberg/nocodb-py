@@ -353,20 +353,7 @@ class NocoDBAPI:
         """
         return urljoin(self.__base_meta_uri_v2, "/".join(("hooks", hook_id)))
 
-    def get_webhook_test_uri(self, hook_id: str) -> str:
-        """Get the URI for testing a webhook using v2 API.
-
-        v2 endpoint: POST /api/v2/meta/hooks/test/{hookId}
-
-        Note: Webhooks haven't migrated to v3 yet. Use v2 API.
-
-        Args:
-            hook_id: The webhook (hook) ID
-
-        Returns:
-            The URI for webhook test operation
-        """
-        return urljoin(self.__base_meta_uri_v2, "/".join(("hooks", "test", hook_id)))
+    # Note: get_webhook_test_uri removed - webhook_test not supported in self-hosted NocoDB
 
     # =========================================================================
     # v3 Meta API URI Methods - Tables
