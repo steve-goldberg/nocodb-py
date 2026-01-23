@@ -61,21 +61,8 @@ def export_csv(
         raise typer.Exit(1)
 
 
-# Also register the csv command as the default when just running `nocodb export VIEW_ID`
-@app.callback(invoke_without_command=True)
-def export_default(
-    ctx: typer.Context,
-    view_id: Optional[str] = typer.Argument(None, help="View ID to export"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output file path"),
-    offset: Optional[int] = typer.Option(None, "--offset", help="Row offset"),
-    limit: Optional[int] = typer.Option(None, "--limit", help="Maximum rows"),
-) -> None:
-    """Export view data as CSV (default format).
-
-    Examples:
-        nocodb export vw_xxx                  # Print to stdout
-        nocodb export vw_xxx -o data.csv      # Save to file
-    """
-    if ctx.invoked_subcommand is None and view_id:
-        # Direct invocation without subcommand - use csv export
-        export_csv(ctx, view_id, output, offset, limit)
+# Callback without positional argument - let subcommands handle VIEW_ID
+@app.callback()
+def export_callback(ctx: typer.Context) -> None:
+    """Export view data to CSV format."""
+    pass
