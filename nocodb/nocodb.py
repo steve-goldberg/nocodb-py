@@ -22,7 +22,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Union
-import warnings
 
 
 class AuthToken(ABC):
@@ -54,7 +53,7 @@ class WhereFilter(ABC):
 
 
 class NocoDBBase:
-    """Represents a NocoDB base (formerly called project in v1 API).
+    """Represents a NocoDB base.
 
     In the v3 API hierarchy: workspace -> base -> table
     The base_id is used in API paths like /api/v3/data/{baseId}/{tableId}/records
@@ -82,192 +81,18 @@ class NocoDBBase:
         """The workspace ID (optional, needed for some meta operations)."""
         return self._workspace_id
 
-    # Deprecated property aliases for backwards compatibility
-    @property
-    def org_name(self) -> str:
-        """Deprecated: Use workspace_id instead."""
-        warnings.warn(
-            "org_name is deprecated. Use workspace_id instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self._workspace_id or ""
-
-    @property
-    def project_name(self) -> str:
-        """Deprecated: Use base_id instead."""
-        warnings.warn(
-            "project_name is deprecated. Use base_id instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return self._base_id
-
     def __repr__(self) -> str:
         if self._workspace_id:
             return f"NocoDBBase(base_id={self._base_id!r}, workspace_id={self._workspace_id!r})"
         return f"NocoDBBase(base_id={self._base_id!r})"
 
 
-class NocoDBProject(NocoDBBase):
-    """Deprecated: Use NocoDBBase instead.
-
-    This class is maintained for backwards compatibility with code written
-    for the v1 API. New code should use NocoDBBase directly.
-
-    .. deprecated:: 0.2.0
-        Use :class:`NocoDBBase` instead.
-    """
-
-    def __init__(self, org_name: str = None, project_name: str = None, *, base_id: str = None, workspace_id: str = None):
-        """Initialize a NocoDBProject (deprecated, use NocoDBBase).
-
-        For backwards compatibility, accepts either:
-        - Legacy style: NocoDBProject(org_name, project_name)
-        - New style: NocoDBProject(base_id=..., workspace_id=...)
-
-        Args:
-            org_name: Deprecated. Maps to workspace_id.
-            project_name: Deprecated. Maps to base_id.
-            base_id: The base ID (preferred).
-            workspace_id: The workspace ID (preferred).
-        """
-        warnings.warn(
-            "NocoDBProject is deprecated. Use NocoDBBase instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-
-        # Handle legacy positional arguments
-        if base_id is None and project_name is not None:
-            base_id = project_name
-        if workspace_id is None and org_name is not None:
-            workspace_id = org_name
-
-        if base_id is None:
-            raise ValueError("base_id (or project_name for legacy code) is required")
-
-        super().__init__(base_id=base_id, workspace_id=workspace_id)
-
-
 class NocoDBClient:
-    @abstractmethod
-    def table_row_list(
-        self, project: NocoDBProject, table: str, filter_obj=None, params=None
-    ) -> dict:
-        pass
+    """Abstract base class for NocoDB API clients.
 
-    @abstractmethod
-    def table_row_list(
-        self,
-        project: NocoDBProject,
-        table: str,
-        filter_obj: Optional[WhereFilter] = None,
-        params: Optional[dict] = None,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_row_create(
-        self, project: NocoDBProject, table: str, body: dict
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_row_detail(
-        self, project: NocoDBProject, table: str, row_id: int
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_row_update(
-        self, project: NocoDBProject, table: str, row_id: int, body: dict
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_row_delete(
-        self, project: NocoDBProject, table: str, row_id: int
-    ) -> int:
-        pass
-
-    @abstractmethod
-    def table_row_nested_relations_list(
-        self,
-        project: NocoDBProject,
-        table: str,
-        relation_type: str,
-        row_id: int,
-        column_name: str,
-    ) -> dict:
-        """Deprecated: Use linked_records_list_v3() instead.
-
-        .. deprecated:: 3.0.0
-            This method uses the v1 API. Use :meth:`linked_records_list_v3` for v3 API.
-        """
-        pass
-
-    @abstractmethod
-    def table_create(
-        self, project: NocoDBProject, body: dict
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_list(
-        self,
-        project: NocoDBProject,
-        params: Optional[dict] = None,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_read(
-        self, tableId: str,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_update(
-        self, tableId: str, body: dict,
-    ) -> bool:
-        pass
-
-    @abstractmethod
-    def table_delete(
-        self, tableId: str,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_reorder(
-        self, tableId: str, order: int,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_column_create(
-        self, tableId: str, body: dict,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_column_update(
-        self, columnId: str, body: dict,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_column_delete(
-        self, columnId: str,
-    ) -> dict:
-        pass
-
-    @abstractmethod
-    def table_column_set_primary(
-        self, columnId: str,
-    ) -> dict:
-        pass
+    This class defines the interface for interacting with NocoDB's v2/v3 APIs.
+    Use NocoDBRequestsClient for the concrete implementation.
+    """
 
     # =========================================================================
     # v3 Data API Methods
