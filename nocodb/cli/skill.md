@@ -96,7 +96,7 @@ nocodb bases delete BASE_ID [-f]
 ```bash
 nocodb tables list [--json]
 nocodb tables get TABLE_ID [--json]
-nocodb tables create --title "My Table" [--json]
+nocodb tables create --title "My Table" [--fields '[{"title": "Email", "type": "Email"}]'] [--json]
 nocodb tables update TABLE_ID --title "New Name" [--json]
 nocodb tables delete TABLE_ID [-f]
 ```
