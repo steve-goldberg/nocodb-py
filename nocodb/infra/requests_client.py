@@ -800,8 +800,8 @@ class NocoDBRequestsClient(NocoDBClient):
 
         Args:
             base_id: The base (project) ID
-            body: Table configuration (title, columns, etc.)
-                Example: {"title": "MyTable", "columns": [...]}
+            body: Table configuration (title, fields, etc.)
+                Example: {"title": "MyTable", "fields": [...]}
 
         Returns:
             Created table object with id, title, etc.

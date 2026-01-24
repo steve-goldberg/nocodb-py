@@ -85,7 +85,7 @@ def get_table(
 def create_table(
     ctx: typer.Context,
     title: str = typer.Option(..., "--title", help="Table title"),
-    columns_json: Optional[str] = typer.Option(None, "--columns", "-c", help="Columns as JSON array"),
+    fields_json: Optional[str] = typer.Option(None, "--fields", "-f", help="Fields as JSON array"),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
 ) -> None:
     """Create a new table."""
@@ -95,8 +95,8 @@ def create_table(
         base_id = get_base_id(config)
 
         body = {"title": title}
-        if columns_json:
-            body["columns"] = json.loads(columns_json)
+        if fields_json:
+            body["fields"] = json.loads(fields_json)
 
         result = client.table_create_v3(base_id, body)
 
@@ -107,7 +107,7 @@ def create_table(
             print_single_item(result)
 
     except json.JSONDecodeError as e:
-        print_error(f"Invalid JSON for columns: {e}", as_json=output_json)
+        print_error(f"Invalid JSON for fields: {e}", as_json=output_json)
         raise typer.Exit(1)
     except Exception as e:
         print_error(str(e), as_json=output_json)
