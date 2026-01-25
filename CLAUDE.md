@@ -30,6 +30,7 @@ Use `/nocodbv3` skill for NocoDB API documentation when implementing features.
 | Tables CRUD | v3 | `/api/v3/meta/bases/{baseId}/tables` |
 | Fields CRUD | v3 | `/api/v3/meta/bases/{baseId}/tables/{tableId}/fields` |
 | Field Read | v3 | `/api/v3/meta/bases/{baseId}/fields/{fieldId}` |
+| Field colOptions Update | v2 | `/api/v2/meta/columns/{columnId}` |
 | Views (list/update/delete) | v2 | `/api/v2/meta/tables/{tableId}/views` |
 | View Filters | v2 | `/api/v2/meta/views/{viewId}/filters` |
 | View Sorts | v2 | `/api/v2/meta/views/{viewId}/sorts` |

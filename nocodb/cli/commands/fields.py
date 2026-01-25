@@ -206,7 +206,11 @@ def update_field(
     options_json: Optional[str] = typer.Option(None, "--options", "-o", help="Field options as JSON"),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
 ) -> None:
-    """Update a field."""
+    """Update a field.
+
+    For SingleSelect/MultiSelect color updates, use colOptions:
+        nocodb fields update FIELD_ID -o '{"colOptions":{"options":[{"title":"A","color":"#ff0000"}]}}'
+    """
     try:
         config = _get_config(ctx)
         client = create_client(config)
@@ -223,7 +227,11 @@ def update_field(
             print_error("No update fields provided", as_json=output_json)
             raise typer.Exit(1)
 
-        result = client.field_update_v3(base_id, field_id, body)
+        # Use v2 API for colOptions updates (v3 returns 400 for these)
+        if "colOptions" in body:
+            result = client.column_update_v2(field_id, body)
+        else:
+            result = client.field_update_v3(base_id, field_id, body)
 
         if output_json:
             print_json(result)

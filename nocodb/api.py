@@ -552,6 +552,26 @@ class NocoDBAPI:
         )))
 
     # =========================================================================
+    # v2 Column Update API URI Method
+    # =========================================================================
+
+    def get_column_uri_v2(self, column_id: str) -> str:
+        """Get the URI for updating a column using v2 API.
+
+        v2 endpoint: PATCH /api/v2/meta/columns/{columnId}
+
+        Note: v3 field update doesn't support colOptions updates (returns 400).
+        Use this v2 endpoint for updating SingleSelect/MultiSelect colors.
+
+        Args:
+            column_id: The column (field) ID
+
+        Returns:
+            The URI for column update operation
+        """
+        return urljoin(self.__base_meta_uri_v2, "/".join(("columns", column_id)))
+
+    # =========================================================================
     # v3 Meta API URI Methods - Tables
     # =========================================================================
 

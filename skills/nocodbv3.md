@@ -73,6 +73,7 @@ nocodb fields create -t TABLE_ID --title "Name" --type TYPE
 nocodb fields create -t TABLE_ID --title "Status" --type SingleSelect \
   -o '{"options":{"choices":[{"title":"Active","color":"#00FF00"},{"title":"Inactive","color":"#FF0000"}]}}'
 nocodb fields update FIELD_ID --title "New" # Rename field
+nocodb fields update FIELD_ID -o '{"colOptions":{"options":[{"title":"A","color":"#ff0000","id":"ID"}]}}'  # Update colors
 nocodb fields delete FIELD_ID               # Delete field
 ```
 

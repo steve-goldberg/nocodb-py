@@ -747,6 +747,28 @@ class NocoDBRequestsClient(NocoDBClient):
         url = self.__api_info.get_field_uri(base_id, field_id)
         return self._request("DELETE", url).json()
 
+    def column_update_v2(
+        self,
+        column_id: str,
+        body: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Update a column using v2 API.
+
+        PATCH /api/v2/meta/columns/{columnId}
+
+        Note: v3 field update doesn't support colOptions updates (returns 400).
+        Use this method for updating SingleSelect/MultiSelect colors.
+
+        Args:
+            column_id: The column (field) ID
+            body: Fields to update (e.g., {"colOptions": {"options": [...]}})
+
+        Returns:
+            Updated column object
+        """
+        url = self.__api_info.get_column_uri_v2(column_id)
+        return self._request("PATCH", url, json=body).json()
+
     # =========================================================================
     # Backwards Compatibility Aliases (column -> field)
     # =========================================================================
