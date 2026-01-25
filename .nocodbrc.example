@@ -1,0 +1,22 @@
+# NocoDB CLI Configuration Example
+# Copy to .nocodbrc (in project root or ~/.nocodbrc) and fill in your values
+
+[default]
+url = "http://localhost:8080"
+# Token should be in NOCODB_TOKEN env var for security, but can be set here:
+# token = "your-api-token"
+base_id = "your-default-base-id"
+
+# Optional: Define profiles for different environments
+# [profiles.prod]
+# url = "https://nocodb.example.com"
+# base_id = "prod_base_id"
+
+# [profiles.dev]
+# url = "http://localhost:8080"
+# base_id = "dev_base_id"
+
+# Usage:
+#   nocodb records list TABLE_ID                    # uses default profile
+#   nocodb records list TABLE_ID --profile prod     # uses prod profile
+#   NOCODB_PROFILE=prod nocodb records list TABLE_ID  # env var
