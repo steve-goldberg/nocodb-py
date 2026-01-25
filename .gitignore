@@ -15,3 +15,5 @@ e2e-progress.txt
 tests/
 PLAN.md
 tests.json
+docs/bugs/
+docs/tasks/
