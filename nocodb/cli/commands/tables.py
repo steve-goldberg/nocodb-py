@@ -119,9 +119,17 @@ def update_table(
     ctx: typer.Context,
     table_id: str = typer.Argument(..., help="Table ID"),
     title: Optional[str] = typer.Option(None, "--title", help="New title"),
+    icon: Optional[str] = typer.Option(None, "--icon", help="Table icon (emoji)"),
+    meta_json: Optional[str] = typer.Option(None, "--meta", "-m", help="Meta as JSON"),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON"),
 ) -> None:
-    """Update a table."""
+    """Update a table.
+
+    Examples:
+        nocodb tables update tbl_xxx --title "New Name"
+        nocodb tables update tbl_xxx --icon "🎯"
+        nocodb tables update tbl_xxx --meta '{"icon": "🎯"}'
+    """
     try:
         config = _get_config(ctx)
         client = create_client(config)
@@ -130,6 +138,19 @@ def update_table(
         body = {}
         if title:
             body["title"] = title
+
+        # Handle icon and meta
+        if icon or meta_json:
+            meta = {}
+            if meta_json:
+                try:
+                    meta = json.loads(meta_json)
+                except json.JSONDecodeError as e:
+                    print_error(f"Invalid JSON for --meta: {e}", as_json=output_json)
+                    raise typer.Exit(1)
+            if icon:
+                meta["icon"] = icon
+            body["meta"] = meta
 
         if not body:
             print_error("No update fields provided", as_json=output_json)
@@ -142,6 +163,8 @@ def update_table(
         else:
             print_success(f"Updated table {table_id}")
 
+    except json.JSONDecodeError:
+        raise  # Already handled above
     except Exception as e:
         print_error(str(e), as_json=output_json)
         raise typer.Exit(1)

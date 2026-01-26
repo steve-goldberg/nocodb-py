@@ -97,7 +97,7 @@ nocodb bases delete BASE_ID [-f]
 nocodb tables list [--json]
 nocodb tables get TABLE_ID [--json]
 nocodb tables create --title "My Table" [--fields '[{"title": "Email", "type": "Email"}]'] [--json]
-nocodb tables update TABLE_ID --title "New Name" [--json]
+nocodb tables update TABLE_ID --title "New Name" [--icon "🎯"] [--meta '{"key":"val"}'] [--json]
 nocodb tables delete TABLE_ID [-f]
 ```
 
@@ -176,7 +176,7 @@ nocodb links unlink -t TABLE_ID -l LINK_FIELD_ID -r RECORD_ID --targets "22" [-f
 ```bash
 nocodb views list -t TABLE_ID [--json]
 nocodb views get VIEW_ID [--json]
-nocodb views update VIEW_ID --title "New Name" [--json]
+nocodb views update VIEW_ID --title "New Name" [--icon "📊"] [--meta '{"key":"val"}'] [--json]
 nocodb views delete VIEW_ID [-f]
 
 # View filters

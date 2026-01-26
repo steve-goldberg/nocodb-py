@@ -62,6 +62,7 @@ nocodb tables get TABLE_ID                  # Get table details
 nocodb tables create --title "Name"         # Create empty table
 nocodb tables create --title "Name" -c '[{"title":"Col","type":"SingleLineText"}]'
 nocodb tables update TABLE_ID --title "New" # Rename table
+nocodb tables update TABLE_ID --icon "🎯"   # Set icon
 nocodb tables delete TABLE_ID               # Delete table
 ```
 
@@ -99,6 +100,7 @@ nocodb links unlink BASE TABLE LINK_FIELD RECORD_ID --targets 1
 ```bash
 nocodb views list -t TABLE_ID               # List views
 nocodb views update VIEW_ID --title "New"   # Rename view
+nocodb views update VIEW_ID --icon "📊"     # Set icon
 
 # Filters (full CRUD)
 nocodb views filters list -v VIEW_ID        # List view filters
