@@ -49,9 +49,9 @@ Go to **General** tab:
 Go to **Environment** tab and add these **Runtime Environment Variables**:
 
 ```
-NOCODB_URL=https://nocodb.example.com
+NOCODB_URL=https://your-nocodb-instance.com
 NOCODB_TOKEN=your-api-token-here
-NOCODB_BASE_ID=your-base-id-here
+NOCODB_BASE_ID=your-base-id
 NOCODB_VERIFY_SSL=false
 ```
 
