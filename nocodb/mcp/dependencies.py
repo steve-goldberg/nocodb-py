@@ -4,6 +4,7 @@ Environment variables:
     NOCODB_URL: NocoDB server URL (required)
     NOCODB_TOKEN: API token or JWT (required)
     NOCODB_BASE_ID: Default base ID (required)
+    NOCODB_VERIFY_SSL: Set to "false" to skip SSL verification (optional, for self-signed certs)
 """
 
 import os
@@ -20,6 +21,7 @@ class MCPConfig:
     url: str
     token: str
     base_id: str
+    verify_ssl: bool = True
 
     @classmethod
     def from_env(cls) -> "MCPConfig":
@@ -31,6 +33,7 @@ class MCPConfig:
         url = os.environ.get("NOCODB_URL", "")
         token = os.environ.get("NOCODB_TOKEN", "")
         base_id = os.environ.get("NOCODB_BASE_ID", "")
+        verify_ssl = os.environ.get("NOCODB_VERIFY_SSL", "true").lower() not in ("false", "0", "no")
 
         missing = []
         if not url:
@@ -46,7 +49,7 @@ class MCPConfig:
                 "Set NOCODB_URL, NOCODB_TOKEN, and NOCODB_BASE_ID."
             )
 
-        return cls(url=url, token=token, base_id=base_id)
+        return cls(url=url, token=token, base_id=base_id, verify_ssl=verify_ssl)
 
     def is_jwt(self) -> bool:
         """Check if token is a JWT (starts with eyJ)."""
@@ -67,7 +70,8 @@ def create_client(config: MCPConfig) -> NocoDBRequestsClient:
     else:
         auth = APIToken(config.token)
 
-    return NocoDBRequestsClient(auth, config.url)
+    # TODO: Remove verify_ssl=False once proper SSL certs are configured
+    return NocoDBRequestsClient(auth, config.url, verify_ssl=config.verify_ssl)
 
 
 # Module-level state for lifespan-managed resources

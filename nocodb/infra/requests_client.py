@@ -15,12 +15,13 @@ import requests
 
 
 class NocoDBRequestsClient(NocoDBClient):
-    def __init__(self, auth_token: AuthToken, base_uri: str):
+    def __init__(self, auth_token: AuthToken, base_uri: str, verify_ssl: bool = True):
         self.__session = requests.Session()
         self.__session.headers.update(
             auth_token.get_header(),
         )
         self.__session.headers.update({"Content-Type": "application/json"})
+        self.__session.verify = verify_ssl  # For self-signed certs in homelab
         self.__api_info = NocoDBAPI(base_uri)
 
     def _request(self, method: str, url: str, *args, **kwargs):
