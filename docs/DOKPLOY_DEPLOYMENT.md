@@ -2,7 +2,7 @@
 
 ## Overview
 
-Deploy the NocoDB MCP Server to Dokploy as an HTTP/SSE service that can be accessed by remote MCP clients.
+Deploy the NocoDB MCP Server to Dokploy as an HTTP service that can be accessed by remote MCP clients.
 
 ## Prerequisites
 
@@ -121,7 +121,7 @@ Step 8/8 : CMD ["python", "-m", "nocodb.mcp", "--http"]
 
 ```
 NocoDB MCP server connected to https://nocodb.example.com (base: your-base-id-here)
-INFO     Starting MCP server 'NocoDB' with transport 'sse'
+INFO     Starting MCP server 'NocoDB' with transport 'http' on http://0.0.0.0:8000/mcp
 ```
 
 ---
@@ -254,16 +254,15 @@ https://mcp-nocodb.yourdomain.com/mcp
 ## Architecture Diagram
 
 ```
-┌─────────────────┐     HTTPS/SSE      ┌──────────────────┐
+┌─────────────────┐       HTTP         ┌──────────────────┐
 │  Claude Desktop │ ◄───────────────► │  Dokploy Server  │
-│  (MCP Client)   │                    │  (MCP Server)    │
+│  (MCP Client)   │   (Streamable)     │  (MCP Server)    │
 └─────────────────┘                    └────────┬─────────┘
                                                 │
                                                 │ HTTPS (verify=false)
                                                 ▼
                                        ┌──────────────────┐
                                        │  NocoDB Instance │
-                                       │  (Pangolin)      │
                                        └──────────────────┘
 ```
 

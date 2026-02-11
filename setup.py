@@ -27,13 +27,13 @@ setup(
            "tomli>=2.0.0;python_version<'3.11'",
        ],
        "mcp": [
-           "fastmcp>=2.14.0",
+           "fastmcp>=3.0.0b1",
        ],
        "all": [
            "typer[all]>=0.12.0",
            "rich>=13.0.0",
            "tomli>=2.0.0;python_version<'3.11'",
-           "fastmcp>=2.14.0",
+           "fastmcp>=3.0.0b1",
        ],
    },
    entry_points={

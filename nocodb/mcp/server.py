@@ -7,6 +7,8 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from .dependencies import init_dependencies, cleanup_dependencies
 
@@ -34,6 +36,15 @@ mcp = FastMCP(
     "NocoDB",
     lifespan=lifespan,
 )
+
+
+# =============================================================================
+# Health check endpoint for monitoring
+# =============================================================================
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request: Request) -> JSONResponse:
+    """Health check endpoint for load balancers and monitoring."""
+    return JSONResponse({"status": "ok"})
 
 
 # =============================================================================
