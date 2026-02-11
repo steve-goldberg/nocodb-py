@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  nocodb-mcp:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Required - set these in Dokploy
+      - NOCODB_URL=${NOCODB_URL}
+      - NOCODB_TOKEN=${NOCODB_TOKEN}
+      - NOCODB_BASE_ID=${NOCODB_BASE_ID}
+      # Optional
+      - MCP_PORT=8000
+      - MCP_HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
