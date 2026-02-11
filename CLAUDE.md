@@ -129,21 +129,23 @@ nocodb-api-v3-client/
 │       ├── requests_client.py      # HTTP client (v2/v3 methods, verify_ssl support)
 │       └── requests_client_test.py # Unit tests (130 tests)
 ├── skills/                   # Claude Code skills
-│   ├── nocodbv3.md           # NocoDB API reference skill
-│   ├── nocodb-mcp-prompt.md  # MCP server system prompt
-│   ├── pr-overview.md        # PR description generator
-│   ├── schema-design.md      # Schema design helper
-│   └── schema-export.md      # Schema export helper
+│   ├── cli/
+│   │   └── nocodb-v3-cli-skill.md  # NocoDB CLI reference skill
+│   └── mcp/
+│       ├── nocodb-mcp-prompt.md    # MCP server system prompt
+│       ├── schema-design.md        # Schema design helper
+│       └── schema-export.md        # Schema export helper
 ├── docs/
-│   └── DOKPLOY_DEPLOYMENT.md # Dokploy deployment guide for MCP server
+│   ├── DOKPLOY_DEPLOYMENT.md # Dokploy deployment guide for MCP server
+│   ├── CONTRIBUTING.md       # Contribution guidelines
+│   ├── MIGRATION.md          # v2/v3 API reference
+│   └── pr-overview.md        # PR description generator
 ├── .github/                  # GitHub templates
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── ISSUE_TEMPLATE/
 ├── Dockerfile                # MCP server Docker image
 ├── docker-compose.yml        # Local Docker testing
 ├── setup.py                  # Package config
-├── CONTRIBUTING.md           # Contribution guidelines
-├── MIGRATION.md              # v2/v3 API reference
 └── README.md                 # User documentation
 ```
 

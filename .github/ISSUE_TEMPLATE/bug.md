@@ -55,4 +55,4 @@ from nocodb import NocoDBClient
 - [ ] I've searched existing issues for duplicates
 - [ ] I've tested with the latest version of nocodb-api-v3-client
 - [ ] I can reproduce this consistently
-- [ ] I've read [CONTRIBUTING.md](../../CONTRIBUTING.md)
+- [ ] I've read [CONTRIBUTING.md](../../docs/CONTRIBUTING.md)

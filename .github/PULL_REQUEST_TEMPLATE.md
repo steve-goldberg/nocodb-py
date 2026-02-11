@@ -43,7 +43,7 @@ If this is your first PR to this project:
 
 > Tests (`*_test.py`) and documentation (`*.md`) don't count toward limits.
 > PRs from first-time contributors that exceed these limits will be closed automatically.
-> See [CONTRIBUTING.md](../CONTRIBUTING.md) for details.
+> See [CONTRIBUTING.md](../docs/CONTRIBUTING.md) for details.
 
 ## PR Size
 

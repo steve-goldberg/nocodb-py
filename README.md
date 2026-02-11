@@ -593,7 +593,7 @@ This project is licensed under the GNU Affero General Public License v3.0.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines. Key points:
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for full guidelines. Key points:
 
 - **Open an issue first** - Required for all changes except docs/typos
 - **First-time PRs**: Maximum 5 files, 200 lines (tests/docs don't count)
