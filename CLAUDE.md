@@ -182,10 +182,11 @@ nocodb-api-v3-client/
   - `raw_filter.py` - `RawFilter` for custom filter strings
 
 - `nocodb/mcp/` - MCP Server (FastMCP 3.0)
-  - `server.py` - FastMCP server with 62 tools exposing all SDK functionality
+  - `server.py` - FastMCP server with 62 tools exposing all SDK functionality + `/health` endpoint
   - `dependencies.py` - Environment-based config (NOCODB_URL, NOCODB_TOKEN, NOCODB_BASE_ID, NOCODB_VERIFY_SSL)
   - `tools/` - 14 tool modules for records, bases, tables, fields, views, webhooks, etc.
   - Supports both stdio (local) and HTTP (remote deployment) transports
+  - HTTP transport uses Streamable HTTP at `/mcp` endpoint (FastMCP 3.0)
   - See `docs/DOKPLOY_DEPLOYMENT.md` for Docker/Dokploy deployment
 
 ### Not Supported (Enterprise Only)

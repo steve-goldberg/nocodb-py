@@ -214,11 +214,13 @@ In `claude_desktop_config.json`:
   "mcpServers": {
     "nocodb-remote": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "http://ncdbmcp.lab/mcp"]
+      "args": ["-y", "mcp-remote", "http://your-server/mcp", "--allow-http"]
     }
   }
 }
 ```
+
+**Note:** The `--allow-http` flag is required for non-HTTPS URLs (e.g., internal networks, Tailscale MagicDNS domains like `.lab`).
 
 ### Other MCP Clients
 
