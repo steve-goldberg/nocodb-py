@@ -9,6 +9,7 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 - Full v3 Data API (records, links, attachments)
 - v3 Meta API (bases, tables, fields, base members)
 - v2 Meta API (list bases, views, filters, sorts, webhooks)
+- **MCP Server** (FastMCP 3.0) - 62 tools for Claude Desktop/AI integrations
 - Export views to CSV with pagination support
 - Storage file uploads (general purpose)
 - View column visibility management
@@ -33,6 +34,7 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 | Webhook Extras | 3 of 3 |
 | Filters/Utils | 9 of 9 |
 | CLI | 11 modules |
+| MCP Server | 62 tools |
 | **Total** | **Complete** |
 
 ## API Version Summary
@@ -472,6 +474,88 @@ nocodb webhooks filters create HOOK_ID --column FIELD_ID --op eq --value "test"
 nocodb records list BASE_ID TABLE_ID --json | jq '.records[].fields.Name'
 ```
 
+## MCP Server
+
+The NocoDB MCP server exposes 62 tools for AI assistants like Claude Desktop.
+
+### Installation
+
+```bash
+pip install -e ".[mcp]"
+# or: uv pip install -e ".[mcp]"
+```
+
+### Local Usage (stdio)
+
+Configure in `~/.config/claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "nocodb": {
+      "command": "/bin/bash",
+      "args": ["-c", "source /path/to/.env && python3 -m nocodb.mcp"],
+      "env": {
+        "NOCODB_URL": "http://localhost:8080",
+        "NOCODB_TOKEN": "your-api-token",
+        "NOCODB_BASE_ID": "your-base-id"
+      }
+    }
+  }
+}
+```
+
+### Remote Deployment (HTTP)
+
+Deploy to Dokploy or any Docker host. See [docs/DOKPLOY_DEPLOYMENT.md](docs/DOKPLOY_DEPLOYMENT.md) for full guide.
+
+```bash
+# Build and run
+docker build -t nocodb-mcp .
+docker run -p 8000:8000 \
+  -e NOCODB_URL=https://your-nocodb.com \
+  -e NOCODB_TOKEN=your-token \
+  -e NOCODB_BASE_ID=your-base-id \
+  -e NOCODB_VERIFY_SSL=false \
+  nocodb-mcp
+```
+
+Connect Claude Desktop to remote server using mcp-remote bridge:
+
+```json
+{
+  "mcpServers": {
+    "nocodb-remote": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://your-server/mcp", "--allow-http"]
+    }
+  }
+}
+```
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NOCODB_URL` | Yes | NocoDB server URL |
+| `NOCODB_TOKEN` | Yes | API token or JWT |
+| `NOCODB_BASE_ID` | Yes | Base ID to work with |
+| `NOCODB_VERIFY_SSL` | No | Set to `false` for self-signed certs |
+
+### Available Tools
+
+The MCP server provides tools for all SDK operations:
+
+- **Records**: list, get, create, update, delete, count
+- **Tables**: list, get, create, update, delete
+- **Fields**: list, get, create, update, delete, update_options
+- **Links**: list linked records, link, unlink
+- **Views**: list, update, delete, filters, sorts, columns
+- **Webhooks**: list, delete, logs, sample payload
+- **Members**: list, add, update, remove
+- **Storage**: upload files
+- **Export**: CSV export
+
 ## Not Supported (Enterprise Only)
 
 These features require NocoDB Enterprise and are not available in self-hosted community edition:
@@ -484,6 +568,9 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 
 ## Recent Changes
 
+- feat(mcp): add MCP server with 62 tools for Claude Desktop/AI integrations
+- feat(mcp): HTTP transport for remote deployment (Dokploy, Docker)
+- feat(mcp): SSL verification bypass for self-signed certs (`NOCODB_VERIFY_SSL`)
 - feat(cli): add batch create and delete for fields (`--file`, `--ids`)
 - fix(docs): SingleSelect colors require HEX codes (`#27ae60`), not named colors
 - fix(cli): better error messages for field creation failures

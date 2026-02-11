@@ -83,7 +83,6 @@ nocodb-api-v3-client/
 │   │   ├── config.py         # Config file (~/.nocodb.toml) and env handling
 │   │   ├── client.py         # Client factory for CLI
 │   │   ├── formatters.py     # Rich table/JSON output formatters
-│   │   ├── skill.md          # Agent-readable CLI documentation
 │   │   └── commands/         # 11 command modules:
 │   │       ├── records.py    # Records CRUD + batch operations
 │   │       ├── bases.py      # Bases CRUD
@@ -94,8 +93,31 @@ nocodb-api-v3-client/
 │   │       ├── webhooks.py   # Webhooks + logs/filters/sample
 │   │       ├── attachments.py # File attachments to records
 │   │       ├── members.py    # Base member management
-│   │       ├── export.py     # CSV export (Phase 2)
-│   │       └── storage.py    # Storage upload (Phase 2)
+│   │       ├── export.py     # CSV export
+│   │       └── storage.py    # Storage upload
+│   ├── mcp/                  # MCP Server (FastMCP 3.0)
+│   │   ├── __init__.py       # Package exports
+│   │   ├── __main__.py       # Entry point for `python -m nocodb.mcp`
+│   │   ├── server.py         # FastMCP server with lifespan
+│   │   ├── dependencies.py   # Config loading, client factory (NOCODB_URL, NOCODB_TOKEN, etc.)
+│   │   ├── errors.py         # ToolError wrapper for NocoDBAPIError
+│   │   ├── models.py         # Response dataclasses
+│   │   └── tools/            # 14 tool modules (62 tools total):
+│   │       ├── records.py    # records_list, record_get, records_create, etc.
+│   │       ├── bases.py      # bases_list, base_info
+│   │       ├── tables.py     # tables_list, table_get, table_create, etc.
+│   │       ├── fields.py     # fields_list, field_create, field_update_options, etc.
+│   │       ├── links.py      # linked_records_list, link, unlink
+│   │       ├── views.py      # views_list, view_update, view_delete
+│   │       ├── view_filters.py   # view_filters_list, create, update, delete
+│   │       ├── view_sorts.py     # view_sorts_list, create, update, delete
+│   │       ├── view_columns.py   # view_columns_list, update, hide_all, show_all
+│   │       ├── shared_views.py   # shared_views_list, create, update, delete
+│   │       ├── webhooks.py       # webhooks_list, delete, logs, sample
+│   │       ├── members.py        # members_list, add, update, remove
+│   │       ├── attachments.py    # attachment_upload
+│   │       ├── storage.py        # storage_upload
+│   │       └── export.py         # export_csv
 │   ├── filters/
 │   │   ├── __init__.py       # Filter exports (EqFilter, IsFilter, InFilter, BetweenFilter, etc.)
 │   │   ├── factory.py        # basic_filter_class_factory()
@@ -104,13 +126,21 @@ nocodb-api-v3-client/
 │   │   └── *_test.py         # Colocated unit tests (filters_test, factory_test, logical_test)
 │   └── infra/
 │       ├── __init__.py
-│       ├── requests_client.py      # HTTP client (v2/v3 methods)
+│       ├── requests_client.py      # HTTP client (v2/v3 methods, verify_ssl support)
 │       └── requests_client_test.py # Unit tests (130 tests)
 ├── skills/                   # Claude Code skills
-│   └── pr-overview.md        # PR description generator
+│   ├── nocodbv3.md           # NocoDB API reference skill
+│   ├── nocodb-mcp-prompt.md  # MCP server system prompt
+│   ├── pr-overview.md        # PR description generator
+│   ├── schema-design.md      # Schema design helper
+│   └── schema-export.md      # Schema export helper
+├── docs/
+│   └── DOKPLOY_DEPLOYMENT.md # Dokploy deployment guide for MCP server
 ├── .github/                  # GitHub templates
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── ISSUE_TEMPLATE/
+├── Dockerfile                # MCP server Docker image
+├── docker-compose.yml        # Local Docker testing
 ├── setup.py                  # Package config
 ├── CONTRIBUTING.md           # Contribution guidelines
 ├── MIGRATION.md              # v2/v3 API reference
@@ -150,6 +180,13 @@ nocodb-api-v3-client/
   - `logical.py` - Logical operators: `And`, `Or`, `Not` (v3 syntax: `~and`, `~or`)
   - `factory.py` - `basic_filter_class_factory()` for creating custom filters
   - `raw_filter.py` - `RawFilter` for custom filter strings
+
+- `nocodb/mcp/` - MCP Server (FastMCP 3.0)
+  - `server.py` - FastMCP server with 62 tools exposing all SDK functionality
+  - `dependencies.py` - Environment-based config (NOCODB_URL, NOCODB_TOKEN, NOCODB_BASE_ID, NOCODB_VERIFY_SSL)
+  - `tools/` - 14 tool modules for records, bases, tables, fields, views, webhooks, etc.
+  - Supports both stdio (local) and HTTP (remote deployment) transports
+  - See `docs/DOKPLOY_DEPLOYMENT.md` for Docker/Dokploy deployment
 
 ### Not Supported (Enterprise Only)
 
