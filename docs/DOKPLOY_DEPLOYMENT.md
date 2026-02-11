@@ -141,11 +141,11 @@ Expected response:
 {"status": "ok"}
 ```
 
-### Test SSE Endpoint
+### Test MCP Endpoint
 
-The MCP SSE endpoint should be at:
+The MCP HTTP endpoint is at:
 ```
-https://mcp-nocodb.yourdomain.com/sse
+https://mcp-nocodb.yourdomain.com/mcp
 ```
 
 ---
@@ -202,16 +202,19 @@ After pushing changes to GitHub:
 
 ## Using with Remote MCP Clients
 
-Once deployed, configure your MCP client to connect via SSE:
+Once deployed, configure your MCP client to connect via HTTP:
 
 ### Claude Desktop (Remote)
+
+Claude Desktop requires the `mcp-remote` bridge to connect to HTTP servers.
 
 In `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
     "nocodb-remote": {
-      "url": "https://mcp-nocodb.yourdomain.com/sse"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://ncdbmcp.lab/mcp"]
     }
   }
 }
@@ -219,9 +222,22 @@ In `claude_desktop_config.json`:
 
 ### Other MCP Clients
 
-Use the SSE transport URL:
+Use the HTTP transport URL:
 ```
-https://mcp-nocodb.yourdomain.com/sse
+https://mcp-nocodb.yourdomain.com/mcp
+```
+
+### Local MCP Client
+
+```json
+{
+  "mcpServers": {
+    "nocodb": {
+      "command": "/bin/bash",
+      "args": ["-c", "source /Users/username/Code/Utils/nocodb/.env && python3 -m nocodb.mcp"]
+    }
+  }
+}
 ```
 
 ---

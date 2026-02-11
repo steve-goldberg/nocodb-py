@@ -44,8 +44,8 @@ def main():
     args = parser.parse_args()
 
     if args.http:
-        # HTTP transport for deployment
-        mcp.run(transport="sse", host=args.host, port=args.port)
+        # HTTP transport for deployment (streamable HTTP at /mcp endpoint)
+        mcp.run(transport="http", host=args.host, port=args.port)
     else:
         # stdio transport for local Claude Desktop
         mcp.run()
