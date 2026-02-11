@@ -2,9 +2,12 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install uv for fast dependency installation
+RUN pip install uv
+
 # Install the package with MCP dependencies
 COPY . .
-RUN pip install --no-cache-dir -e ".[mcp]"
+RUN uv pip install --system -e ".[mcp]"
 
 # Default port
 ENV MCP_PORT=8000
