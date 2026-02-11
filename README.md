@@ -9,7 +9,7 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 - Full v3 Data API (records, links, attachments)
 - v3 Meta API (bases, tables, fields, base members)
 - v2 Meta API (list bases, views, filters, sorts, webhooks)
-- **MCP Server** (FastMCP 3.0) - 62 tools for Claude Desktop/AI integrations
+- **MCP Server** (FastMCP 3.0) - 62 tools for Claude Desktop/AI integrations (HTTP + stdio transports)
 - Export views to CSV with pagination support
 - Storage file uploads (general purpose)
 - View column visibility management
@@ -533,6 +533,8 @@ Connect Claude Desktop to remote server using mcp-remote bridge:
 }
 ```
 
+**Note:** The `--allow-http` flag is required for non-HTTPS URLs (e.g., internal networks, Tailscale).
+
 ### Environment Variables
 
 | Variable | Required | Description |
@@ -568,6 +570,8 @@ These features require NocoDB Enterprise and are not available in self-hosted co
 
 ## Recent Changes
 
+- feat(mcp): upgrade to FastMCP 3.0 with Streamable HTTP transport (`/mcp` endpoint)
+- feat(mcp): add `/health` endpoint for load balancer monitoring
 - feat(mcp): add MCP server with 62 tools for Claude Desktop/AI integrations
 - feat(mcp): HTTP transport for remote deployment (Dokploy, Docker)
 - feat(mcp): SSL verification bypass for self-signed certs (`NOCODB_VERIFY_SSL`)
@@ -589,7 +593,7 @@ This project is licensed under the GNU Affero General Public License v3.0.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines. Key points:
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for full guidelines. Key points:
 
 - **Open an issue first** - Required for all changes except docs/typos
 - **First-time PRs**: Maximum 5 files, 200 lines (tests/docs don't count)

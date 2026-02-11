@@ -31,7 +31,7 @@ labels: enhancement
 ## Checklist
 
 - [ ] I've searched existing issues for duplicates
-- [ ] I've read [CONTRIBUTING.md](../../CONTRIBUTING.md)
+- [ ] I've read [CONTRIBUTING.md](../../docs/CONTRIBUTING.md)
 - [ ] I understand first-time PRs are limited to 3 files / 100 lines
 - [ ] I'm willing to implement this myself
 

@@ -2,15 +2,45 @@
 
 You have access to the NocoDB MCP server for database operations on a self-hosted NocoDB instance.
 
-## Quick Start
+## CRITICAL: Always Discover Schema First
+
+**You MUST call `fields_list` or `table_get` BEFORE using `sort` or `where` parameters.**
+
+The API returns 400 Bad Request if you use field names that don't exist. Field names cannot be guessed.
+
+### Wrong (will fail with 400):
+```
+records_list(table_id="tbl_xxx", sort="-plays")  # Guessing "plays" exists
+records_list(table_id="tbl_xxx", where="(status,eq,Active)")  # Guessing "status" exists
+```
+
+### Correct workflow:
+```
+1. fields_list(table_id="tbl_xxx")
+   # Returns actual fields: Title, Views, CreatedAt, Status, ...
+
+2. records_list(table_id="tbl_xxx", sort="-Views", where="(Status,eq,Active)")
+   # Use exact field names from step 1
+```
+
+### Field names are:
+- **Case-sensitive** - "Status" ≠ "status"
+- **Must match exactly** - Use the title returned by fields_list
+- **Never guess** - Always discover first
+
+---
+
+## Required Workflow
 
 ```
-1. bases_list      → See available bases (for configuration)
-2. base_info       → Get current base details
-3. tables_list     → List tables in the base
-4. table_get       → See table schema/fields before querying
-5. records_list    → Query records with filters
+1. tables_list              → Get table IDs
+2. fields_list(table_id)    → REQUIRED before sort/where - get exact field names
+3. records_list(...)        → Query using actual field names from step 2
 ```
+
+---
+
+## Quick Reference
 
 ## Tool Categories
 
@@ -279,8 +309,9 @@ records_delete(table_id="tbl_xxx", record_ids=["1", "2"], confirm=True)
 
 ## Tips
 
-1. **Always get table schema first** - Use `table_get` before creating/updating records
-2. **Use field IDs, not titles** - Most tools require `fld_xxx` format IDs
-3. **Batch operations** - `records_create` and `records_update` accept lists
-4. **Pagination** - Use `page` and `page_size` for large datasets, or `records_list_all` for everything
-5. **Filter syntax** - Remember the parentheses: `(field,op,value)`
+1. **ALWAYS discover schema first** - Call `fields_list` before using `sort` or `where` parameters
+2. **Field names are case-sensitive** - Use exact names from `fields_list` output
+3. **Use field IDs for some tools** - Links, field operations require `fld_xxx` format IDs
+4. **Batch operations** - `records_create` and `records_update` accept lists
+5. **Pagination** - Use `page` and `page_size` for large datasets, or `records_list_all` for everything
+6. **Filter syntax** - Remember the parentheses: `(FieldName,op,value)` with exact field name
