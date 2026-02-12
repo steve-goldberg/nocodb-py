@@ -21,6 +21,7 @@ from . import (
     storage,
     export,
     schema,
+    docs,
 )
 
 __all__ = [
@@ -40,4 +41,5 @@ __all__ = [
     "storage",
     "export",
     "schema",
+    "docs",
 ]
