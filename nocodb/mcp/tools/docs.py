@@ -16,16 +16,17 @@ from ..resources import WORKFLOW_CONTENT, REFERENCE_CONTENT
 def get_workflow_guide() -> str:
     """Get the NocoDB workflow guide - CRITICAL rules for schema discovery.
 
-    READ THIS FIRST before using sort or where parameters!
+    IMPORTANT: This is internal documentation for your reference only.
+    Do NOT paste this content into the chat. Read it, internalize the rules,
+    and apply them silently. Only mention specific rules if the user asks.
 
-    The API returns 400 Bad Request if you use field names that don't exist.
-    This guide explains the required workflow:
+    Call this BEFORE your first NocoDB query to learn the required workflow:
     1. tables_list -> Get table IDs
     2. fields_list(table_id) -> REQUIRED before sort/where
     3. records_list(...) -> Query using actual field names
 
     Returns:
-        Markdown guide with workflow rules, examples, and troubleshooting.
+        Markdown guide with workflow rules (for internal use).
     """
     return WORKFLOW_CONTENT
 
@@ -34,15 +35,18 @@ def get_workflow_guide() -> str:
 def get_reference() -> str:
     """Get the complete NocoDB MCP reference documentation.
 
+    IMPORTANT: This is internal documentation for your reference only.
+    Do NOT paste this content into the chat. Use it to look up syntax,
+    field types, or tool parameters when needed. Only share specific
+    details if the user explicitly asks.
+
     Contains:
-    - All 60 tool descriptions organized by category
-    - Field type reference with options examples
+    - Tool descriptions by category
+    - Field type reference with options
     - Filter syntax guide
     - Common workflow examples
-    - Self-hosted limitations
-    - Destructive operation requirements
 
     Returns:
-        Full markdown reference documentation.
+        Full markdown reference (for internal use).
     """
     return REFERENCE_CONTENT
