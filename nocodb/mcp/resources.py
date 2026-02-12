@@ -1,17 +1,17 @@
-"""NocoDB MCP Server prompts for guiding tool usage.
+"""NocoDB MCP Server resources for guiding tool usage.
 
-Provides two prompts:
-- nocodb_workflow: Critical rules for schema discovery (call first!)
-- nocodb_reference: Full reference documentation for all tools
+Provides two resources:
+- nocodb://workflow-guide: Critical rules for schema discovery
+- nocodb://reference: Full reference documentation for all tools
 """
 
 from .server import mcp
 
 # =============================================================================
-# Workflow Prompt - Critical rules to prevent 400 errors
+# Workflow Resource - Critical rules to prevent 400 errors
 # =============================================================================
 
-WORKFLOW_PROMPT = """# NocoDB Workflow Guide
+WORKFLOW_CONTENT = """# NocoDB Workflow Guide
 
 ## STOP! Before ANY Query Operation
 
@@ -92,10 +92,10 @@ records_list(table_id="tbl_xxx", where="(Status,eq,Active)")  # Exact case!
 
 
 # =============================================================================
-# Reference Prompt - Full documentation
+# Reference Resource - Full documentation
 # =============================================================================
 
-REFERENCE_PROMPT = """# NocoDB MCP Server Reference
+REFERENCE_CONTENT = """# NocoDB MCP Server Reference
 
 You have access to the NocoDB MCP server for database operations on a self-hosted NocoDB instance.
 
@@ -414,29 +414,27 @@ records_delete(table_id="tbl_xxx", record_ids=["1", "2"], confirm=True)
 
 
 # =============================================================================
-# Register prompts with the MCP server
+# Register resources with the MCP server
 # =============================================================================
 
 
-@mcp.prompt
+@mcp.resource(
+    uri="nocodb://workflow-guide",
+    name="NocoDB Workflow Guide",
+    description="Critical rules for schema discovery - READ FIRST before using sort/where",
+    mime_type="text/markdown",
+)
 def nocodb_workflow() -> str:
-    """Get the required workflow for using NocoDB tools correctly.
-
-    CALL THIS FIRST before using records_list with sort or where parameters!
-
-    Returns critical rules for schema discovery that prevent 400 errors.
-    If you get a 400 Bad Request, you probably skipped this step.
-    """
-    return WORKFLOW_PROMPT
+    """Critical workflow rules to prevent 400 errors when querying NocoDB."""
+    return WORKFLOW_CONTENT
 
 
-@mcp.prompt
+@mcp.resource(
+    uri="nocodb://reference",
+    name="NocoDB Reference",
+    description="Complete reference documentation for all NocoDB MCP tools",
+    mime_type="text/markdown",
+)
 def nocodb_reference() -> str:
-    """Get the complete NocoDB MCP reference documentation.
-
-    Includes: tool categories, field types, filter syntax, common workflows,
-    limitations, destructive operation warnings, and tips.
-
-    Call this when you need detailed information about specific tools or operations.
-    """
-    return REFERENCE_PROMPT
+    """Full reference documentation for NocoDB MCP server tools."""
+    return REFERENCE_CONTENT

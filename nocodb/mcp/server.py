@@ -72,5 +72,5 @@ from .tools import (  # noqa: E402, F401
     schema,
 )
 
-# Import prompts module to register prompts with the server
-from . import prompts  # noqa: E402, F401
+# Import resources module to register resources with the server
+from . import resources  # noqa: E402, F401
