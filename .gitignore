@@ -18,3 +18,4 @@ tests.json
 docs/bugs/
 docs/tasks/
 .grepai/
+*.DS_Store
