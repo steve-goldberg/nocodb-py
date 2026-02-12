@@ -69,4 +69,8 @@ from .tools import (  # noqa: E402, F401
     attachments,
     storage,
     export,
+    schema,
 )
+
+# Import prompts module to register prompts with the server
+from . import prompts  # noqa: E402, F401

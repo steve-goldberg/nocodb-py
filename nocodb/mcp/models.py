@@ -343,3 +343,22 @@ class ExportResult:
     """Result from exporting a view."""
     csv_content: str
     row_count: int | None = None
+
+
+# =============================================================================
+# Schema Export
+# =============================================================================
+
+@dataclass
+class TableSchemaResult:
+    """Result from exporting a table schema."""
+    title: str
+    fields: list[dict[str, Any]]
+
+
+@dataclass
+class BaseSchemaResult:
+    """Result from exporting a base schema."""
+    title: str
+    tables: list[dict[str, Any]]
+    description: str | None = None

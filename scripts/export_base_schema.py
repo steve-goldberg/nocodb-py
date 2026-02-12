@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from nocodb.cli.client import create_client, get_base_id
 from nocodb.cli.config import load_config
-from schema_utils import extract_portable_base_schema
+from nocodb.schema_utils import extract_portable_base_schema
 
 
 def export_base(base_id: str, client) -> dict:

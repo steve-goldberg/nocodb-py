@@ -20,6 +20,7 @@ from . import (
     attachments,
     storage,
     export,
+    schema,
 )
 
 __all__ = [
@@ -38,4 +39,5 @@ __all__ = [
     "attachments",
     "storage",
     "export",
+    "schema",
 ]

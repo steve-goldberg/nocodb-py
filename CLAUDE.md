@@ -77,6 +77,7 @@ nocodb-api-v3-client/
 │   ├── api.py                # URI builders (v2/v3)
 │   ├── exceptions.py         # Custom exceptions
 │   ├── utils.py              # Utility functions
+│   ├── schema_utils.py       # Schema export utilities (portable schema extraction)
 │   ├── cli/
 │   │   ├── __init__.py       # CLI package
 │   │   ├── main.py           # Typer app, global options
@@ -102,7 +103,8 @@ nocodb-api-v3-client/
 │   │   ├── dependencies.py   # Config loading, client factory (NOCODB_URL, NOCODB_TOKEN, etc.)
 │   │   ├── errors.py         # ToolError wrapper for NocoDBAPIError
 │   │   ├── models.py         # Response dataclasses
-│   │   └── tools/            # 14 tool modules (62 tools total):
+│   │   ├── prompts.py        # MCP prompts (workflow guide, reference docs)
+│   │   └── tools/            # 16 tool modules (60 tools total):
 │   │       ├── records.py    # records_list, record_get, records_create, etc.
 │   │       ├── bases.py      # bases_list, base_info
 │   │       ├── tables.py     # tables_list, table_get, table_create, etc.
@@ -117,7 +119,8 @@ nocodb-api-v3-client/
 │   │       ├── members.py        # members_list, add, update, remove
 │   │       ├── attachments.py    # attachment_upload
 │   │       ├── storage.py        # storage_upload
-│   │       └── export.py         # export_csv
+│   │       ├── export.py         # export_csv
+│   │       └── schema.py         # schema_export_table, schema_export_base
 │   ├── filters/
 │   │   ├── __init__.py       # Filter exports (EqFilter, IsFilter, InFilter, BetweenFilter, etc.)
 │   │   ├── factory.py        # basic_filter_class_factory()
@@ -184,9 +187,10 @@ nocodb-api-v3-client/
   - `raw_filter.py` - `RawFilter` for custom filter strings
 
 - `nocodb/mcp/` - MCP Server (FastMCP 3.0)
-  - `server.py` - FastMCP server with 62 tools exposing all SDK functionality + `/health` endpoint
+  - `server.py` - FastMCP server with 60 tools + 2 prompts exposing all SDK functionality + `/health` endpoint
   - `dependencies.py` - Environment-based config (NOCODB_URL, NOCODB_TOKEN, NOCODB_BASE_ID, NOCODB_VERIFY_SSL)
-  - `tools/` - 14 tool modules for records, bases, tables, fields, views, webhooks, etc.
+  - `prompts.py` - MCP prompts: `nocodb_workflow` (schema discovery rules), `nocodb_reference` (full docs)
+  - `tools/` - 16 tool modules for records, bases, tables, fields, views, webhooks, schema export, etc.
   - Supports both stdio (local) and HTTP (remote deployment) transports
   - HTTP transport uses Streamable HTTP at `/mcp` endpoint (FastMCP 3.0)
   - See `docs/DOKPLOY_DEPLOYMENT.md` for Docker/Dokploy deployment
