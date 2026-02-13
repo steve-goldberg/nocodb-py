@@ -4,11 +4,11 @@ from setuptools import setup, find_packages
 setup(
    name='nocodb',
    version='3.0.0',
-   author='Samuel López Saura',
-   author_email='samuellopezsaura@gmail.com',
+   author='Steve Goldberg',
+   author_email='',
    packages=find_packages(),
    license='AGPL-3.0',
-   url='https://github.com/ElChicoDePython/python-nocodb',
+   url='https://github.com/steve-goldberg/nocodb-py',
    classifiers=[
        "Programming Language :: Python :: 3",
        "License :: OSI Approved :: GNU Affero General Public License v3",

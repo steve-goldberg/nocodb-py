@@ -18,4 +18,5 @@ tests.json
 docs/bugs/
 docs/tasks/
 .grepai/
+.nano-banana/
 *.DS_Store
