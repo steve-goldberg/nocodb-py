@@ -2,8 +2,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install uv for fast dependency installation
-RUN pip install uv
+# Upgrade pip and install uv for fast dependency installation
+RUN pip install --upgrade pip && pip install uv
 
 # Install the package with MCP dependencies
 COPY . .

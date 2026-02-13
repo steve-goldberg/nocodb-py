@@ -9,7 +9,7 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 - Full v3 Data API (records, links, attachments)
 - v3 Meta API (bases, tables, fields, base members)
 - v2 Meta API (list bases, views, filters, sorts, webhooks)
-- **MCP Server** (FastMCP 3.0) - 60 tools + 2 prompts for Claude Desktop/AI integrations (HTTP + stdio transports)
+- **MCP Server** (FastMCP 3.0) - 62 tools + 2 prompts for Claude Desktop/AI integrations (HTTP + stdio transports)
 - Export views to CSV with pagination support
 - Storage file uploads (general purpose)
 - View column visibility management
@@ -18,7 +18,7 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 - Query filters with logical operators
 - Batch operations for records and fields
 - Pagination helpers
-- Full CLI with Typer/Rich (11 command modules)
+- Auto-generated CLI via FastMCP (62 commands from MCP server)
 - 123 tests, fully typed
 
 ## Project Status
@@ -33,8 +33,8 @@ NocoDB is an open-source Airtable alternative. This client provides a complete P
 | View Management | 4 of 4 |
 | Webhook Extras | 3 of 3 |
 | Filters/Utils | 9 of 9 |
-| CLI | 11 modules |
-| MCP Server | 60 tools + 2 prompts |
+| CLI | 62 commands (auto-generated) |
+| MCP Server | 62 tools + 2 prompts |
 | **Total** | **Complete** |
 
 ## API Version Summary
