@@ -12,7 +12,7 @@ This client uses a hybrid v2/v3 API approach based on what's available in self-h
 - **v3 Data API** - Records CRUD, links, attachments, button actions
 - **v3 Meta API** - Tables, fields, base CRUD, base members
 - **v2 Meta API** - List bases, views (list/update/delete only), view filters/sorts, webhooks (list/delete only)
-- **CLI** - Full command-line interface using Typer/Rich
+- **CLI** - Auto-generated CLI via FastMCP (62 commands from MCP server)
 
 Use `/nocodbv3` skill for NocoDB API documentation when implementing features.
 
@@ -79,23 +79,13 @@ nocodb-api-v3-client/
 │   ├── utils.py              # Utility functions
 │   ├── schema_utils.py       # Schema export utilities (portable schema extraction)
 │   ├── cli/
-│   │   ├── __init__.py       # CLI package
-│   │   ├── main.py           # Typer app, global options
-│   │   ├── config.py         # Config file (~/.nocodb.toml) and env handling
-│   │   ├── client.py         # Client factory for CLI
-│   │   ├── formatters.py     # Rich table/JSON output formatters
-│   │   └── commands/         # 11 command modules:
-│   │       ├── records.py    # Records CRUD + batch operations
-│   │       ├── bases.py      # Bases CRUD
-│   │       ├── tables.py     # Tables CRUD
-│   │       ├── fields.py     # Fields CRUD + batch create/delete
-│   │       ├── links.py      # Linked records
-│   │       ├── views.py      # Views + columns/share/filters/sorts
-│   │       ├── webhooks.py   # Webhooks + logs/filters/sample
-│   │       ├── attachments.py # File attachments to records
-│   │       ├── members.py    # Base member management
-│   │       ├── export.py     # CSV export
-│   │       └── storage.py    # Storage upload
+│   │   ├── __init__.py       # CLI package exports
+│   │   ├── __main__.py       # Entry point for `python -m nocodb.cli`
+│   │   ├── main.py           # Entry point, handles `init` command
+│   │   ├── config.py         # Config file (~/.nocodbrc) and env handling
+│   │   ├── wrapper.py        # Config injection, command aliases, param mapping
+│   │   ├── generated.py      # Auto-generated CLI (62 commands from MCP server)
+│   │   └── SKILL.md          # Agent skill documentation for CLI
 │   ├── mcp/                  # MCP Server (FastMCP 3.0)
 │   │   ├── __init__.py       # Package exports
 │   │   ├── __main__.py       # Entry point for `python -m nocodb.mcp`
@@ -120,7 +110,8 @@ nocodb-api-v3-client/
 │   │       ├── attachments.py    # attachment_upload
 │   │       ├── storage.py        # storage_upload
 │   │       ├── export.py         # export_csv
-│   │       └── schema.py         # schema_export_table, schema_export_base
+│   │       ├── schema.py         # schema_export_table, schema_export_base
+│   │       └── docs.py           # get_workflow_guide, get_reference (for mcp-remote)
 │   ├── filters/
 │   │   ├── __init__.py       # Filter exports (EqFilter, IsFilter, InFilter, BetweenFilter, etc.)
 │   │   ├── factory.py        # basic_filter_class_factory()
@@ -138,6 +129,8 @@ nocodb-api-v3-client/
 │       ├── nocodb-mcp-prompt.md    # MCP server system prompt
 │       ├── schema-design.md        # Schema design helper
 │       └── schema-export.md        # Schema export helper
+├── scripts/
+│   └── regenerate-cli.sh    # Regenerate CLI after MCP tool changes
 ├── docs/
 │   ├── DOKPLOY_DEPLOYMENT.md # Dokploy deployment guide for MCP server
 │   ├── CONTRIBUTING.md       # Contribution guidelines
@@ -175,10 +168,11 @@ nocodb-api-v3-client/
   - v2 Shared Views: `shared_views_list()`, `shared_view_create()`, `shared_view_update()`, `shared_view_delete()`
   - v2 Webhook extras: `webhook_logs()`, `webhook_sample_payload()`, `webhook_filters_list()`, `webhook_filter_create()`
 
-- `nocodb/cli/` - Command-line interface (Typer + Rich)
-  - `main.py` - App entry point with global options (--url, --token, --json)
-  - `config.py` - Config file loading (~/.nocodb.toml), env vars (NOCODB_URL, NOCODB_TOKEN)
-  - `commands/` - 11 modules: records, bases, tables, fields, links, views, webhooks, attachments, members, export, storage
+- `nocodb/cli/` - Auto-generated CLI (cyclopts via FastMCP)
+  - `main.py` - Entry point, handles `init` command only
+  - `config.py` - Config file loading (~/.nocodbrc), env vars (NOCODB_URL, NOCODB_TOKEN)
+  - `wrapper.py` - Config injection, command aliases (`records list` → `call-tool records_list`), param mapping
+  - `generated.py` - Auto-generated from MCP server (62 tool commands), regenerate with `scripts/regenerate-cli.sh`
 
 - `nocodb/filters/` - Query filter system
   - `__init__.py` - Filter classes: `EqFilter`, `LikeFilter`, `IsFilter`, `InFilter`, `BetweenFilter`
@@ -187,10 +181,10 @@ nocodb-api-v3-client/
   - `raw_filter.py` - `RawFilter` for custom filter strings
 
 - `nocodb/mcp/` - MCP Server (FastMCP 3.0)
-  - `server.py` - FastMCP server with 60 tools + 2 prompts exposing all SDK functionality + `/health` endpoint
+  - `server.py` - FastMCP server with 62 tools + 2 prompts exposing all SDK functionality + `/health` endpoint
   - `dependencies.py` - Environment-based config (NOCODB_URL, NOCODB_TOKEN, NOCODB_BASE_ID, NOCODB_VERIFY_SSL)
   - `prompts.py` - MCP prompts: `nocodb_workflow` (schema discovery rules), `nocodb_reference` (full docs)
-  - `tools/` - 16 tool modules for records, bases, tables, fields, views, webhooks, schema export, etc.
+  - `tools/` - 17 tool modules for records, bases, tables, fields, views, webhooks, schema export, docs, etc.
   - Supports both stdio (local) and HTTP (remote deployment) transports
   - HTTP transport uses Streamable HTTP at `/mcp` endpoint (FastMCP 3.0)
   - See `docs/DOKPLOY_DEPLOYMENT.md` for Docker/Dokploy deployment
