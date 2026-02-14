@@ -2,11 +2,11 @@
 
 Usage:
     # stdio mode (for local Claude Desktop)
-    python -m nocodb.mcp
+    python -m nocodb.mcpserver
 
     # HTTP mode (for deployment)
-    python -m nocodb.mcp --http
-    python -m nocodb.mcp --http --port 8001 --host 0.0.0.0
+    python -m nocodb.mcpserver --http
+    python -m nocodb.mcpserver --http --port 8001 --host 0.0.0.0
 
 Environment variables:
     NOCODB_URL: NocoDB server URL (required)

@@ -114,7 +114,7 @@ Step 4/8 : COPY . .
 Step 5/8 : RUN uv pip install --system -e ".[mcp]"
 Step 6/8 : ENV MCP_PORT=8000
 Step 7/8 : ENV MCP_HOST=0.0.0.0
-Step 8/8 : CMD ["python", "-m", "nocodb.mcp", "--http"]
+Step 8/8 : CMD ["python", "-m", "nocodb.mcpserver", "--http"]
 ```
 
 ### Expected Runtime Output
@@ -236,7 +236,7 @@ https://mcp-nocodb.yourdomain.com/mcp
   "mcpServers": {
     "nocodb": {
       "command": "/bin/bash",
-      "args": ["-c", "source /Users/username/Code/Utils/nocodb/.env && python3 -m nocodb.mcp"]
+      "args": ["-c", "source /Users/username/Code/Utils/nocodb/.env && python3 -m nocodb.mcpserver"]
     }
   }
 }

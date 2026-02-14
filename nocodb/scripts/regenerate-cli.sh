@@ -31,7 +31,7 @@ done
 echo "Starting MCP server on port $PORT..."
 
 # Start the MCP server in the background
-python -m nocodb.mcp --http --port $PORT &
+python -m nocodb.mcpserver --http --port $PORT &
 SERVER_PID=$!
 
 # Wait for server to be ready
@@ -72,7 +72,7 @@ if old_spec:
         old_spec.group(0),
         '''CLIENT_SPEC = StdioTransport(
     command=sys.executable,
-    args=["-m", "nocodb.mcp"],
+    args=["-m", "nocodb.mcpserver"],
 )'''
     )
 
