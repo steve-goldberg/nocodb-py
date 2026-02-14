@@ -57,7 +57,7 @@ docker run -p 8000:8000 \
 
 ### Dokploy
 
-See [DOKPLOY_DEPLOYMENT.md](DOKPLOY_DEPLOYMENT.md) for full deployment guide.
+See [DEPLOY_MCP.md](DEPLOY_MCP.md) for full deployment guide.
 
 ### Connect Claude Desktop to Remote Server
 
@@ -192,4 +192,4 @@ When running in HTTP mode:
 
 - [SDK](SDK.md) - Python client library
 - [CLI](CLI.md) - Command-line interface
-- [Dokploy Deployment](DOKPLOY_DEPLOYMENT.md) - Full deployment guide
+- [Dokploy Deployment](DEPLOY_MCP.md) - Full deployment guide
