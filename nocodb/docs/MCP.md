@@ -27,7 +27,7 @@ Configure in `~/.config/claude/claude_desktop_config.json`:
   "mcpServers": {
     "nocodb": {
       "command": "/bin/bash",
-      "args": ["-c", "source /path/to/.env && python3 -m nocodb.mcp"],
+      "args": ["-c", "source /path/to/.env && python3 -m nocodb.mcpserver"],
       "env": {
         "NOCODB_URL": "http://localhost:8080",
         "NOCODB_TOKEN": "your-api-token",

@@ -1,12 +1,22 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
+# When building from nocodb/ folder, packages are in current directory
+# We need to map them to nocodb.* namespace for imports like "from nocodb.mcpserver import ..."
 setup(
    name='nocodb',
    version='3.0.0',
    author='Steve Goldberg',
    author_email='',
-   packages=find_packages(),
+   packages=['nocodb', 'nocodb.mcpserver', 'nocodb.mcpserver.tools', 'nocodb.cli', 'nocodb.filters', 'nocodb.infra'],
+   package_dir={
+       'nocodb': '.',
+       'nocodb.mcpserver': 'mcpserver',
+       'nocodb.mcpserver.tools': 'mcpserver/tools',
+       'nocodb.cli': 'cli',
+       'nocodb.filters': 'filters',
+       'nocodb.infra': 'infra',
+   },
    license='AGPL-3.0',
    url='https://github.com/steve-goldberg/nocodb-py',
    classifiers=[

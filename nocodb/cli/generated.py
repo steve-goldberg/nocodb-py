@@ -20,7 +20,7 @@ from fastmcp.client.transports import StdioTransport
 # The server reads NOCODB_URL, NOCODB_TOKEN, NOCODB_BASE_ID from environment.
 CLIENT_SPEC = StdioTransport(
     command=sys.executable,
-    args=["-m", "nocodb.mcp"],
+    args=["-m", "nocodb.mcpserver"],
 )
 
 app = cyclopts.App(name="nocodb", help="NocoDB CLI - Agent-friendly command-line interface")
