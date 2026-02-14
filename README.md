@@ -37,10 +37,10 @@
 
 This repo contains two independently deployable services:
 
-| Service | Path | Description | Dokploy Build Path |
-|---------|------|-------------|-------------------|
-| **nocodb** | `/nocodb/` | Python SDK + MCP Server + CLI | `/nocodb/` |
-| **nocobot** | `/nocobot/` | Telegram bot with MCP agent | `/nocobot/` |
+| Service | Path | Description | Dokploy Context |
+|---------|------|-------------|-----------------|
+| **nocodb** | `/nocodb/` | Python SDK + MCP Server + CLI | `nocodb` |
+| **nocobot** | `/nocobot/` | Telegram bot with MCP agent | `nocobot` |
 
 ---
 
@@ -105,8 +105,8 @@ records = client.records_list_v3(base_id, table_id)
 | [CLI](nocodb/docs/CLI.md) | Command-line interface usage |
 | [MCP Server](nocodb/docs/MCP.md) | AI assistant integration |
 | [Filters](nocodb/docs/FILTERS.md) | Query filter system |
-| [Deployment](nocodb/docs/DOKPLOY_DEPLOYMENT.md) | Docker/Dokploy deployment |
-| [nocobot Deployment](nocobot/docs/DOKPLOY_DEPLOYMENT.md) | Telegram bot deployment |
+| [Deploy MCP](nocodb/docs/DEPLOY_MCP.md) | MCP server Dokploy deployment |
+| [Deploy Bot](nocobot/docs/DEPLOY_BOT.md) | Telegram bot Dokploy deployment |
 
 ---
 
